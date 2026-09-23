@@ -12,7 +12,7 @@ import { unsubscribeUrl } from "@/lib/unsubscribe";
 
 const RESEND_API = "https://api.resend.com";
 // Cloudflare fronts api.resend.com and 403s bot-like User-Agents. (See resend.ts.)
-const USER_AGENT = "vestige-marketing/1.0 (+https://vestige.golf)";
+const USER_AGENT = "vestige-web/1.0 (+https://vestige.golf)";
 
 export async function sendWelcomeEmail(email: string): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;

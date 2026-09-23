@@ -17,7 +17,7 @@ import "server-only";
 const RESEND_API = "https://api.resend.com";
 // api.resend.com is fronted by Cloudflare, which 403s bot-like/missing
 // User-Agents ("error code: 1010"). Send an explicit one. (See resend.ts.)
-const USER_AGENT = "vestige-marketing/1.0 (+https://vestige.golf)";
+const USER_AGENT = "vestige-web/1.0 (+https://vestige.golf)";
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 const PAGE_SIZE = 100;

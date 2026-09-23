@@ -26,7 +26,7 @@ const RESEND_API = "https://api.resend.com";
 
 // api.resend.com is fronted by Cloudflare, which blocks requests with a missing
 // or bot-like User-Agent (HTTP 403, "error code: 1010"). Send an explicit one.
-const USER_AGENT = "vestige-marketing/1.0 (+https://vestige.golf)";
+const USER_AGENT = "vestige-web/1.0 (+https://vestige.golf)";
 
 export type WaitlistResult =
   // isNew: contact didn't exist before this signup. rejoined: contact existed

@@ -64,7 +64,7 @@ export function CountyAtlas({
   );
 
   // The moment the last county has finished fading in. Mirrors the
-  // done-path timing in globals.css (620ms + i*55ms, 500ms each). Every
+  // done-path timing in marketing.css (620ms + i*55ms, 500ms each). Every
   // beat that has to land after the sweep — the legend, the "just added"
   // beacon, the whole finale — is offset from this one value in CSS, so
   // the choreography stays glued to the end of the fill at any county

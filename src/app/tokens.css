@@ -1,0 +1,41 @@
+/* ═══════════════════════════════════════════════════════════════
+   Vestige - shared tokens, for every route group.
+   Only what is the same in every appearance lives here: the type
+   families, radii and spacing. Colour is per group - the marketing
+   pages are dark-only, the course directory follows the reader's
+   light / dark - so each group's stylesheet sets its own colours.
+   Manrope (display) + Inter (ui) are loaded by next/font in each
+   root layout; we reference them via --font-display-face and
+   --font-inter.
+   ═══════════════════════════════════════════════════════════════ */
+
+@import "tailwindcss";
+
+:root {
+  /* ─── Type families (next/font wires the actual @font-face) ─ */
+  --font-display: var(--font-display-face), -apple-system, "SF Pro", system-ui, sans-serif;
+  --font-ui:      var(--font-inter), -apple-system, "SF Pro", system-ui, "Inter", sans-serif;
+  --font-mono:    "SF Mono", ui-monospace, "JetBrains Mono", monospace;
+  --num-features: "tnum" 1, "lnum" 1;
+
+  /* ─── Radii ────────────────────────────────────────────────── */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-2xl: 28px;
+  --r-pill: 999px;
+
+  /* ─── Spacing scale (px) ───────────────────────────────────── */
+  --s-0-5: 4px;
+  --s-1:   6px;
+  --s-1-5: 8px;
+  --s-2:   12px;
+  --s-2-5: 14px;
+  --s-3:   18px;
+  --s-3-5: 22px;
+  --s-4:   28px;
+  --s-5:   40px;
+  --s-6:   56px;
+}
