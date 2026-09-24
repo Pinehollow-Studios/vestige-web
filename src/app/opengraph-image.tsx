@@ -121,7 +121,7 @@ export default async function Image() {
         >
           <div style={{ display: "flex" }}>iPhone</div>
           <div style={{ display: "flex", margin: "0 14px", color: "#3a4654" }}>·</div>
-          <div style={{ display: "flex" }}>Free at launch</div>
+          <div style={{ display: "flex" }}>Free to download</div>
           <div style={{ display: "flex", margin: "0 14px", color: "#3a4654" }}>·</div>
           <div style={{ display: "flex", color: mint }}>{siteConfig.domain}</div>
         </div>

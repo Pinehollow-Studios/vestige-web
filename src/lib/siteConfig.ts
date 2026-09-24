@@ -294,7 +294,7 @@ export const siteConfig: SiteConfig = {
     headline: [`${COURSES_HEADLINE_PLUS} courses. How many have you `, "played", "?"],
     waitlistNote:
       "Join before 2 October and the public beta link is yours.",
-    metaStrip: ["iPhone, iOS 18+", "Free at launch", "Beta link goes out 2 Oct"],
+    metaStrip: ["iPhone, iOS 26+", "Free to download", "Beta link goes out 2 Oct"],
   },
 
   // England, Scotland and Wales in turn, so the strip reads as the whole
@@ -350,7 +350,7 @@ export const siteConfig: SiteConfig = {
       body:
         "Join the waiting list. The public beta link goes out once, on 2 October, to everyone on it by then. The App Store release is free.",
       ctaLabel: "Join the waiting list",
-      meta: "iPhone, iOS 18+ · Free at launch",
+      meta: "iPhone, iOS 26+ · Free to download",
     },
   },
 

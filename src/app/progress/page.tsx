@@ -189,7 +189,7 @@ export default function ProgressPage() {
             <Link href="/#join" className="fw-page-cta-btn">
               Join the waiting list
             </Link>
-            <p className="fw-page-cta-meta">iPhone, iOS 18+ · Free at launch</p>
+            <p className="fw-page-cta-meta">iPhone, iOS 26+ · Free to download</p>
           </section>
         </Reveal>
       </main>
