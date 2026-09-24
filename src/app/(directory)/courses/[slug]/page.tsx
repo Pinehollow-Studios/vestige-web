@@ -13,7 +13,10 @@ import {
   styleLabel,
   websiteHost,
 } from "@/lib/directory/format";
+import { directoryMetadata } from "@/lib/directory/config";
+import { breadcrumbList, golfCourse, graph } from "@/lib/directory/jsonLd";
 import { CallToAction, Crumbs, Section } from "../../_components/Frame";
+import { JsonLd } from "../../_components/JsonLd";
 
 /**
  * A course - `/courses/<slug>`, flat and permanent (plan §1, §3). Phase 1
@@ -24,8 +27,10 @@ import { CallToAction, Crumbs, Section } from "../../_components/Frame";
  *
  * Static: every slug is prerendered at build; a course added since renders
  * on first request and is then cached (`dynamicParams`). Data is tagged
- * `courses` + `course:<slug>` for phase 2's revalidation webhook; until
- * then `revalidate` refreshes a page at most once a day.
+ * `courses` + `course:<slug>`, refreshed by the webhook
+ * (app/api/revalidate), with `revalidate` as the daily backstop. The share
+ * image is the sibling opengraph-image.tsx; the structured data is a
+ * GolfCourse + BreadcrumbList.
  */
 
 export const dynamicParams = true;
@@ -53,11 +58,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const fallback = `${course.name} is a ${
     styleLabel(course.style)?.toLowerCase() ?? "golf"
   } course in ${course.county_name}.`;
-  return {
+  return directoryMetadata({
     title: `${course.name}, ${course.county_name}`,
     description: excerpt(course.description?.trim() || fallback),
-    alternates: { canonical: `/courses/${course.slug}` },
-  };
+    path: `/courses/${course.slug}`,
+  });
 }
 
 export default async function CoursePage({ params }: { params: Params }) {
@@ -84,11 +89,21 @@ export default async function CoursePage({ params }: { params: Params }) {
   if (style) facts.push({ label: "Style", value: style, word: true });
   if (course.established != null) facts.push({ label: "Founded", value: String(course.established) });
 
+  const structured = graph([
+    golfCourse(course, website),
+    breadcrumbList([
+      { name: "Courses", path: "/courses" },
+      { name: course.county_name, path: `/courses/county/${course.county_slug}` },
+      { name: course.name, path: `/courses/${course.slug}` },
+    ]),
+  ]);
+
   return (
     <article>
+      <JsonLd data={structured} />
       <Crumbs
         items={[
-          { label: "Courses" },
+          { label: "Courses", href: "/courses" },
           { label: course.county_name, href: `/courses/county/${course.county_slug}` },
           { label: course.name },
         ]}
@@ -207,7 +222,7 @@ export default async function CoursePage({ params }: { params: Params }) {
         </Section>
       ) : null}
 
-      <CallToAction />
+      <CallToAction pageType="course" />
     </article>
   );
 }

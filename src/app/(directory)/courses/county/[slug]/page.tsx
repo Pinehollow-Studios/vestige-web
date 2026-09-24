@@ -1,8 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, ResolvingMetadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllCounties, getCounty, getCountyCourses } from "@/lib/directory/data";
 import { byName, formatNumber, isSlug, plural } from "@/lib/directory/format";
+import { directoryMetadata } from "@/lib/directory/config";
+import { breadcrumbList, courseItemList, graph } from "@/lib/directory/jsonLd";
 import { CallToAction, Crumbs, Section } from "../../../_components/Frame";
+import { JsonLd } from "../../../_components/JsonLd";
 import { CourseRows, indexNote } from "../../../_components/CourseRows";
 
 /**
@@ -26,19 +29,23 @@ export async function generateStaticParams(): Promise<Array<{ slug: string }>> {
   }
 }
 
-export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+export async function generateMetadata(
+  { params }: { params: Params },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
   const { slug } = await params;
   if (!isSlug(slug)) return {};
   const [county, courses] = await Promise.all([getCounty(slug), getCountyCourses(slug)]);
   if (!county) return {};
-  return {
+  return directoryMetadata({
     title: `Golf courses in ${county.name}`,
     description:
       courses.length > 0
         ? `The ${plural(courses.length, "golf course", "golf courses")} in ${county.name} on Vestige, with the style and holes of each.`
         : `Golf courses in ${county.name}.`,
-    alternates: { canonical: `/courses/county/${county.slug}` },
-  };
+    path: `/courses/county/${county.slug}`,
+    parent,
+  });
 }
 
 export default async function CountyPage({ params }: { params: Params }) {
@@ -50,10 +57,19 @@ export default async function CountyPage({ params }: { params: Params }) {
 
   const full = courses.filter((c) => c.tier !== "short").sort(byName);
   const short = courses.filter((c) => c.tier === "short").sort(byName);
+  const path = `/courses/county/${county.slug}`;
+  const structured = graph([
+    courseItemList(`Golf courses in ${county.name}`, path, [...full, ...short], false),
+    breadcrumbList([
+      { name: "Courses", path: "/courses" },
+      { name: county.name, path },
+    ]),
+  ]);
 
   return (
     <article>
-      <Crumbs items={[{ label: "Courses" }, { label: county.name }]} />
+      <JsonLd data={structured} />
+      <Crumbs items={[{ label: "Courses", href: "/courses" }, { label: county.name }]} />
 
       <h1 className="dx-title">{county.name}</h1>
       <p className="dx-sub">
@@ -76,7 +92,7 @@ export default async function CountyPage({ params }: { params: Params }) {
         </Section>
       ) : null}
 
-      {courses.length > 0 ? <CallToAction label="Played any? Put them on your map" /> : null}
+      {courses.length > 0 ? <CallToAction pageType="county" label="Played any? Put them on your map" /> : null}
     </article>
   );
 }

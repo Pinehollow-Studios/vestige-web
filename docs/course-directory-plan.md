@@ -1,6 +1,6 @@
 # The course directory - build plan
 
-**Status:** phase 1 BUILT 2026-09-23 - the data migration `20260923110000_web_directory` on DEV (prod pending Tom), the route-group split and the course / county / list pages on branch `feat/course-directory`, noindex, uncommitted. Tom's phase-1 call: **no course shape** yet (overrides §3 item 7 for now).
+**Status:** phase 1 BUILT and pushed 2026-09-23 (`feat/course-directory`, b4e84df); **phase 2 BUILT 2026-09-24, uncommitted** - front door with search, style pages, JSON-LD, sitemap, share images, the app CTA + Smart App Banner (both dormant until 1.0 is listed), the old-link redirect and the revalidation webhook, all behind `DIRECTORY_INDEXABLE = false` (`src/lib/directory/config.ts`); the bunker's `revalidateDirectory()` call (uncommitted in vestige-bunker). Data migration `20260923110000_web_directory` on DEV only. Tom's phase-1 call: **no course shape** yet (overrides §3 item 7 for now).
 **Where it lives:** this repo (`vestige-web`, renamed from `vestige-marketing` on
 2026-09-23), on the same domain as the marketing pages. The iOS side is recorded in
 `vestige-ios/CLAUDE.md` §16.21.
@@ -313,7 +313,7 @@ waitlist path before the 2 Oct send.
   touched.
 - Vercel: confirm the plan (§5.4).
 
-### Phase 2 - The directory (about 5 Oct → end of Oct)
+### Phase 2 - The directory (BUILT 2026-09-24; go-live bar below still open)
 
 - The route-group restructure (§2.1), after the 2 Oct send.
 - Course, county, list and front-door pages; sitemap; JSON-LD; share images; Smart

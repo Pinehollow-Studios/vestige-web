@@ -3,6 +3,7 @@ import { inter, manrope } from "../fonts";
 import { Analytics } from "@vercel/analytics/next";
 import "./directory.css";
 import { siteConfig } from "@/lib/siteConfig";
+import { directoryRobots } from "@/lib/directory/config";
 import { DirectoryFooter, DirectoryHeader } from "./_components/Frame";
 
 /**
@@ -13,11 +14,12 @@ import { DirectoryFooter, DirectoryHeader } from "./_components/Frame";
  * is a full page load, which is fine.
  *
  * The directory follows the reader's light / dark (the marketing pages stay
- * dark-only). It is `noindex, nofollow` as a whole until the go-live bar in
- * plan §6 is met; robots.ts deliberately does NOT disallow /courses, or
- * Google would never see this noindex. Pages set their own title,
- * description and canonical, and never `robots` - a child's `robots`
- * replaces this one rather than merging.
+ * dark-only). Its robots rule follows the one switch, DIRECTORY_INDEXABLE
+ * (src/lib/directory/config.ts): `noindex, nofollow` as a whole until the
+ * go-live bar in plan §6 is met. robots.ts deliberately does NOT disallow
+ * /courses, or Google would never see the noindex. Pages set their own
+ * title, description, canonical and share cards (`directoryMetadata`), and
+ * never `robots` - a child's `robots` replaces this one rather than merging.
  */
 
 export const metadata: Metadata = {
@@ -28,7 +30,7 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   applicationName: siteConfig.brandName,
-  robots: { index: false, follow: false },
+  robots: directoryRobots,
   authors: [{ name: siteConfig.footer.studio.shortName, url: siteConfig.footer.studio.website }],
   creator: siteConfig.footer.studio.shortName,
   publisher: siteConfig.footer.studio.shortName,

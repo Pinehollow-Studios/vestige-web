@@ -62,6 +62,9 @@ export const COURSE_SUMMARY_COLUMNS = [
 
 export type CourseSummary = Pick<DirectoryCourse, (typeof COURSE_SUMMARY_COLUMNS)[number]>;
 
+/** The sitemap's slim read: which page, and when it last changed. */
+export type CourseStamp = Pick<DirectoryCourse, "slug" | "style" | "updated_at">;
+
 /** A row of `web_directory_counties`. */
 export type DirectoryCounty = {
   slug: string;

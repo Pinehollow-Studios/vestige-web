@@ -46,6 +46,31 @@ export function styleLabel(style: string | null): string | null {
   return sentenceCase(style);
 }
 
+/** The style's URL word: "Pitch and Putt" -> "pitch-and-putt". The inverse is a lookup over the data. */
+export function styleSlug(style: string): string {
+  return style
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** The latest of a set of ISO timestamps, or undefined when there are none. */
+export function latest(stamps: Iterable<string | null | undefined>): string | undefined {
+  let best: string | undefined;
+  let bestMs = -Infinity;
+  for (const s of stamps) {
+    if (!s) continue;
+    const ms = Date.parse(s);
+    if (Number.isFinite(ms) && ms > bestMs) {
+      bestMs = ms;
+      best = s;
+    }
+  }
+  return best;
+}
+
 function sentenceCase(s: string): string {
   const lower = s.trim().toLowerCase();
   return lower.charAt(0).toUpperCase() + lower.slice(1);

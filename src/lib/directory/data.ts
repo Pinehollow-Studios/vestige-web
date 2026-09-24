@@ -4,6 +4,7 @@ import { cache } from "react";
 import { readAllRows, readView } from "./source";
 import {
   COURSE_SUMMARY_COLUMNS,
+  type CourseStamp,
   type CourseSummary,
   type DirectoryCounty,
   type DirectoryCourse,
@@ -28,6 +29,12 @@ const SUMMARY_SELECT = COURSE_SUMMARY_COLUMNS.join(",");
 export const getAllCourseSummaries = cache(async (): Promise<CourseSummary[]> => {
   const query = new URLSearchParams({ select: SUMMARY_SELECT, order: "slug.asc" });
   return readAllRows<CourseSummary>("web_directory_courses", query, ["courses"]);
+});
+
+/** Every course's slug, style and last edit - the sitemap's `lastModified`. */
+export const getCourseStamps = cache(async (): Promise<CourseStamp[]> => {
+  const query = new URLSearchParams({ select: "slug,style,updated_at", order: "slug.asc" });
+  return readAllRows<CourseStamp>("web_directory_courses", query, ["courses"]);
 });
 
 /** One course's full row, or null when no course has that slug. */

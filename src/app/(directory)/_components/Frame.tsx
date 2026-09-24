@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { siteConfig } from "@/lib/siteConfig";
+import { appCta, type DirectoryPageType } from "@/lib/directory/config";
 
 /**
  * The directory's chrome: a quiet header, the breadcrumb, the one CTA and
@@ -16,6 +17,9 @@ export function DirectoryHeader() {
         <Image src="/brand/icon-192.png" alt="" aria-hidden="true" width={26} height={26} loading="eager" />
         {siteConfig.brandName}
       </Link>
+      <nav className="dx-top-nav" aria-label="Directory">
+        <Link href="/courses">Courses</Link>
+      </nav>
     </header>
   );
 }
@@ -47,8 +51,8 @@ export type Crumb = { label: string; href?: string };
 
 /**
  * `Courses › <County> › <Course>`. The last crumb is the page itself. A crumb
- * without an href renders as text - "Courses" stays unlinked until the front
- * door (`/courses`) exists in phase 2.
+ * without an href renders as text. The page's BreadcrumbList JSON-LD mirrors
+ * the same trail.
  */
 export function Crumbs({ items }: { items: Crumb[] }) {
   return (
@@ -74,20 +78,30 @@ export function Crumbs({ items }: { items: Crumb[] }) {
 }
 
 /**
- * The one call to action. It goes to the app page for now; phase 2 swaps in
- * the App Store campaign link per page type (plan §2.6).
+ * The one call to action. Its target is `appCta` (plan §2.6): the site's
+ * `/app` page until the App Store listing exists, then the listing with a
+ * campaign link counted per page type.
  */
 export function CallToAction({
+  pageType,
   label = "Played it? Put it on your map",
 }: {
+  pageType: DirectoryPageType;
   label?: string;
 }) {
+  const cta = appCta(pageType);
   return (
     <aside className="dx-cta" aria-label={`${siteConfig.brandName}, the app`}>
       <p>{siteConfig.tagline}</p>
-      <Link className="dx-cta-button" href="/app">
-        {label}
-      </Link>
+      {cta.external ? (
+        <a className="dx-cta-button" href={cta.href} rel="noopener">
+          {label}
+        </a>
+      ) : (
+        <Link className="dx-cta-button" href={cta.href}>
+          {label}
+        </Link>
+      )}
     </aside>
   );
 }
