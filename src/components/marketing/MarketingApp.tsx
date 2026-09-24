@@ -176,7 +176,7 @@ export function MarketingApp({
           </div>
 
           {/* Sizing and wrapping live in CSS (.fw-hero-meta), not here, so
-              the phone breakpoints can tighten them — see globals.css. */}
+              the phone breakpoints can tighten them — see marketing.css. */}
           <div className="fw-intro-stage fw-hero-meta" style={stage(840)}>
             {siteConfig.hero.metaStrip.map((m, i) => (
               <span key={i} className="fw-hero-meta-item">

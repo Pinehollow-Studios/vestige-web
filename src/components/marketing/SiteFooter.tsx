@@ -12,7 +12,7 @@ import { PinehollowMark } from "./PinehollowMark";
  * moves as a block at the breakpoints rather than the links wrapping
  * wherever they happen to run out of room. Wide: all three on one row.
  * Medium: brand and pages on top, the studio line beneath. Narrow: the
- * three stacked. See the grid-template-areas in globals.css.
+ * three stacked. See the grid-template-areas in marketing.css.
  *
  * The studio cluster is the site's standing link to Pinehollow: the
  * studio's own mark, the registered name (the UK trading-disclosure line

@@ -1,25 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope } from "next/font/google";
+import { inter, manrope } from "../fonts";
 import { Analytics } from "@vercel/analytics/next";
-import "./globals.css";
+import "./marketing.css";
 import { siteConfig } from "@/lib/siteConfig";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-// Modern geometric sans — the display face. Replaces Fraunces. Used
-// upright only, so only the normal style is loaded to keep the font
-// payload small on mobile.
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-display-face",
-  weight: ["400", "500", "600", "700"],
-  style: ["normal"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${siteConfig.domain}`),
@@ -118,7 +101,7 @@ export default function RootLayout({
     <html
       lang="en-GB"
       className={`${inter.variable} ${manrope.variable}`}
-      // Tells Next the smooth scrolling in globals.css is intentional, so
+      // Tells Next the smooth scrolling in marketing.css is intentional, so
       // it can suspend it during route transitions — without this, moving
       // between the pages would smooth-scroll to the top of each one.
       data-scroll-behavior="smooth"

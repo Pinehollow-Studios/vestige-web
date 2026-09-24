@@ -1,7 +1,10 @@
-# vestige-marketing
+# vestige-web
 
-Marketing site for Vestige Golf at [vestige.golf](https://vestige.golf): the
-pitch, the app page, the progress map, the waiting list, the legal pages, and
+Everything served at [vestige.golf](https://vestige.golf) for Vestige Golf.
+Renamed from `vestige-marketing` on 2026-09-23: the repo is the whole website,
+not only its marketing pages, and it will also carry the public course
+directory (`/courses/...`, decided by Tom and Jack on 2026-09-23, not yet
+built). Today it holds the pitch, the app page, the progress map, the waiting list, the legal pages, and
 the link-landing pages that universal links fall back to (`/u/<username>`,
 `/course/<id>`, `/list/<id>`, `/society/join/<token>`). The site is live and
 indexable.
