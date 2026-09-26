@@ -7,7 +7,7 @@
 > recommended (especially the club-insights section — "aggregated /
 > anonymised" has a high bar under UK GDPR).
 
-**Last updated:** 8 September 2026
+**Last updated:** 26 September 2026
 
 Vestige ("Vestige", "we", "us") is a golf-course collection tracker for
 Great Britain, built by Pinehollow Studios Limited. This policy explains what
@@ -41,11 +41,11 @@ avatar/cover photo. If you sign in with Apple or Google, we receive the
 identifier those services return to us; if you use Apple's Hide My Email, we
 receive Apple's private relay address instead of your real one.
 
-**Your golf activity.** The courses you mark as played, rounds you log
-(date, optional score, optional notes/reflections), the lists you create,
-and your friend connections.
+**Your golf activity.** The courses you mark as played or To play,
+rounds you log (date, optional score, optional notes/reflections), the
+lists you create, and your friend connections.
 
-**About you (optional).** During onboarding we ask three optional questions:
+**About you (optional).** In a short in-app survey we may ask three optional questions:
 your age band, your handicap band, and how you mostly play. You can skip
 them entirely. We use these answers only in aggregate — to understand
 Vestige's audience and in the club insights described below — never to
@@ -110,8 +110,8 @@ across other apps or websites.
   keep to yourself, and the bug reports you send us, are deliberately not
   screened at all.
 - To produce **aggregated, anonymised insights for golf clubs** — for
-  example, how many Vestige users played a club, or added it to one of their
-  lists, over a period. These insights are always aggregated across many
+  example, how many Vestige users played a club, marked it To play, or added
+  it to a list, over a period. These insights are always aggregated across many
   users, never individual-level, never personally identifiable, and exclude
   anyone who has opted out of analytics. A club will never see that a named
   person visited.
@@ -175,7 +175,8 @@ You can, at any time:
   excludes you from all aggregated club insights.
 - **Control your visibility** — set your profile to Private or Public at any
   time, and choose whether you appear on the global and local leaderboards
-  (Settings → Privacy & data).
+  (Settings → Privacy & data). This also decides who sees your played courses
+  and your To play.
 
 Under UK GDPR you also have rights to rectification, restriction, objection,
 and to complain to the Information Commissioner's Office (ICO) at

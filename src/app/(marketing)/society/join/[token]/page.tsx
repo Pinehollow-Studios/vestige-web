@@ -3,28 +3,27 @@ import { LinkLanding } from "@/components/LinkLanding";
 import { siteConfig } from "@/lib/siteConfig";
 
 /**
- * Web fallback for `https://vestige.golf/society/join/<token>` - a
- * society invite link (CLAUDE.md §5.3). With Vestige installed, iOS
- * opens the app, which redeems the token and lands on the society.
+ * Web fallback for `https://vestige.golf/society/join/<token>`, the old
+ * society invite link. Societies were removed from the app on
+ * 2026-09-23 (they return, rebuilt, in 2027), so no invite behind this
+ * link can be redeemed any more. The route stays so an old link is never
+ * a 404, but it says nothing about societies: it is the plain link
+ * landing, one way into Vestige.
  *
- * The token in the path is the society's `join_token` and is never
- * rendered or echoed here: it is a capability, not a label. The page
- * says only that an invite was sent. Societies are behind a feature
- * flag for beta 1, so in practice this page is dormant - it exists so
- * the invite link is never a 404 the day the flag flips.
+ * The token in the path is never rendered or echoed here.
  */
 
 export const metadata: Metadata = {
-  title: "A society invite",
-  description: `You have been invited to a golf society on ${siteConfig.brandName}.`,
+  title: "A link to Vestige",
+  description: `${siteConfig.brandName}. ${siteConfig.tagline}`,
 };
 
 export default function SocietyJoinLinkPage() {
   return (
     <LinkLanding
-      eyebrow="Society invite"
-      headline="You have been invited"
-      blurb={`Someone invited you to their golf society on ${siteConfig.brandName}. Open this link again once the app is installed and the invite will be waiting.`}
+      eyebrow={siteConfig.brandName}
+      headline={siteConfig.tagline}
+      blurb={siteConfig.description}
     />
   );
 }

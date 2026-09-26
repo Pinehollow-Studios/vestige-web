@@ -35,12 +35,16 @@ course figures are not typed by hand there; they come from `progressConfig.ts`,
 the same file the /progress map reads, so the hero, the stats and the emails
 cannot drift apart.
 
-Two values change with the release calendar:
+Three values change with the release calendar:
 
-- `BETA_LINK_SEND_DATE` (2 October 2026) — the **one** send of the public
-  TestFlight link to the waiting list as it stands that day. There is no second
-  send; `betaLinkStillToCome()` gates every line written for people who can
-  still make the list.
+- `BETA_LINK_SENT` + `TESTFLIGHT_PUBLIC_URL` — the **one** send of the public
+  TestFlight link to the waiting list as it stands on 2 October 2026. There is
+  no second send. Nothing is scheduled: Tom sends the link by hand, then sets
+  `BETA_LINK_SENT = true` and `TESTFLIGHT_PUBLIC_URL` to the link, and deploys.
+  The flag (read directly, or through `betaLinkStillToCome()`) switches every
+  line written for people who can still make the list, and the URL sends
+  `/u/<handle>` visitors without the app to TestFlight instead of the waiting
+  list.
 - `appStoreUrl` — null until the 1.0 listing is live (January 2027). When set,
   the hero swaps the waitlist form for the App Store badge.
 
