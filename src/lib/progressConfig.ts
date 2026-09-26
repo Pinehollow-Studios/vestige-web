@@ -111,7 +111,7 @@ export const progressConfig = {
 
   /** Honest, present-tense — rewrite it whenever the work changes. */
   rightNow:
-    "England is done: every course is in, all the way to the Northumberland coast, and the map now runs to the whole of Great Britain. Scotland and Wales are next on Jack's list. Tom's polishing the app's main flows and squashing beta feedback ahead of a wider release.",
+    "England is done: every course is in, all the way to the Northumberland coast, and the map now runs to the whole of Great Britain. Scotland and Wales are next on Jack's list. Tom's polishing the app's main flows and getting the app ready for the public beta.",
 
   /**
    * One real screenshot of the app. Drop the file in public/progress/
@@ -121,7 +121,7 @@ export const progressConfig = {
    */
   screenshot: {
     src: "/progress/app-home-2.png",
-    alt: "The Vestige home screen on the closed beta: the county map of England with the collection filling in, Wales greyed out beside it, 11 of 942 courses played, Surrey within reach at 9 of 68.",
+    alt: "The Vestige home screen: the county map of England with the collection filling in, Wales greyed out beside it, 11 of 942 courses played, Surrey within reach at 9 of 68.",
   } as { src: string; alt: string } | null,
 } as const;
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { siteConfig } from "@/lib/siteConfig";
+import { BETA_LINK_SENT, siteConfig } from "@/lib/siteConfig";
 import {
   progressConfig,
   COUNTIES_TOTAL,
@@ -182,10 +182,17 @@ export default function ProgressPage() {
             <h2>
               Want <span className="fw-page-cta-ital">in</span>?
             </h2>
-            <p>
-              Join the waiting list. The public beta link goes out to it once, on
-              2 October, plus the occasional update like this one. Nothing else.
-            </p>
+            {BETA_LINK_SENT ? (
+              <p>
+                Join the waiting list for first word of version 1.0 in January,
+                plus the occasional update like this one. Nothing else.
+              </p>
+            ) : (
+              <p>
+                Join the waiting list. The public beta link goes out to it once, on
+                2 October, plus the occasional update like this one. Nothing else.
+              </p>
+            )}
             <Link href="/#join" className="fw-page-cta-btn">
               Join the waiting list
             </Link>

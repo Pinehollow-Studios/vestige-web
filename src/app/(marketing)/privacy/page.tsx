@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: `What ${siteConfig.brandName} collects, why, and the rights you hold over it — covering the app and this website.`,
 };
 
-const UPDATED = "8 September 2026";
+const UPDATED = "26 September 2026";
 const CONTACT = siteConfig.supportEmail;
 
 const link: React.CSSProperties = {
@@ -174,13 +174,13 @@ export default function PrivacyPage() {
             Apple&rsquo;s private relay address instead of your real one.
           </p>
           <p style={para}>
-            <span style={strong}>Your golf activity.</span> The courses you mark as played, rounds
-            you log (date, optional score, optional notes/reflections), the lists you create, and
+            <span style={strong}>Your golf activity.</span> The courses you mark as played or To
+            play, rounds you log (date, optional score, optional notes/reflections), the lists you create, and
             your friend connections.
           </p>
           <p style={para}>
-            <span style={strong}>About you (optional).</span> During onboarding we ask three
-            optional questions: your age band, your handicap band, and how you mostly play. You
+            <span style={strong}>About you (optional).</span> In a short in-app survey we may ask
+            three optional questions: your age band, your handicap band, and how you mostly play. You
             can skip them entirely. We use these answers only in aggregate — to understand{" "}
             {brandName}&rsquo;s audience and in the club insights described below — never to
             profile you individually, and they are never shown on your profile.
@@ -254,8 +254,8 @@ export default function PrivacyPage() {
             <li>
               To produce{" "}
               <span style={strong}>aggregated, anonymised insights for golf clubs</span> — for
-              example, how many {brandName} users played a club, or added it to one of their
-              lists, over a period. These insights are always aggregated across many users, never
+              example, how many {brandName} users played a club, marked it To play, or added it
+              to a list, over a period. These insights are always aggregated across many users, never
               individual-level, never personally identifiable, and exclude anyone who has opted
               out of analytics. A club will never see that a named person visited.
             </li>
@@ -351,7 +351,8 @@ export default function PrivacyPage() {
             <li>
               <span style={strong}>Control your visibility</span> — set your profile to Private or
               Public at any time, and choose whether you appear on the global and local
-              leaderboards (Settings → Privacy &amp; data).
+              leaderboards (Settings → Privacy &amp; data). This also decides who sees your
+              played courses and your To play.
             </li>
           </ul>
           <p style={para}>

@@ -16,9 +16,10 @@ import { betaLinkStillToCome, siteConfig } from "../lib/siteConfig";
  * render without it and fall back to the support mailto. Tinker freely; preview
  * with `npm run email`.
  *
- * The beta paragraph is date-aware on purpose: the public beta link is a single
- * send, so once it has gone out this email must stop promising it to people who
- * joined too late. Rendered per send, so `new Date()` is the send date.
+ * The beta paragraph and the roadmap switch on BETA_LINK_SENT (siteConfig) on
+ * purpose: the public beta link is a single send, so once it has gone out this
+ * email must stop promising it to people who joined too late, and the roadmap
+ * drops the October row. The flag is flipped by hand after the send.
  */
 export default function WelcomeEmail({
   unsubscribeUrl,
@@ -87,16 +88,18 @@ export default function WelcomeEmail({
       <Text style={pStyle}>We&rsquo;re building it now. Here&rsquo;s the shape of things:</Text>
 
       <Section style={{ margin: "6px 0 2px" }}>
-        {siteConfig.roadmap.milestones.map((m, i) => (
-          <Text key={i} style={{ margin: "8px 0 0", fontSize: 14, lineHeight: "20px", color: brand.ink2 }}>
-            {m.status === "now" ? "Now" : "Targeting"}{" "}
-            <span style={{ color: brand.accent, fontWeight: 700 }}>
-              {m.month} {m.year}
-            </span>
-            {"  ·  "}
-            <span style={{ color: brand.ink }}>{m.label}.</span> {m.body}
-          </Text>
-        ))}
+        {siteConfig.roadmap.milestones
+          .filter((m) => betaLinkStillToCome() || !m.oneSend)
+          .map((m, i) => (
+            <Text key={i} style={{ margin: "8px 0 0", fontSize: 14, lineHeight: "20px", color: brand.ink2 }}>
+              {m.status === "now" ? "Now" : "Targeting"}{" "}
+              <span style={{ color: brand.accent, fontWeight: 700 }}>
+                {m.month} {m.year}
+              </span>
+              {"  ·  "}
+              <span style={{ color: brand.ink }}>{m.label}.</span> {m.body}
+            </Text>
+          ))}
       </Section>
 
       <Text style={pStyle}>

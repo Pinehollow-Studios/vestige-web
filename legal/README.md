@@ -23,8 +23,8 @@ must be kept in step whenever either changes.
   Connect.
 - [`beta-testing-agreement.md`](beta-testing-agreement.md) →
   `src/app/beta-terms/page.tsx` (https://vestige.golf/beta-terms). The
-  private-beta tester agreement (confidentiality, no sharing, liability for
-  breach), accepted via the app's beta acknowledgement gate.
+  beta tester agreement (pre-release software, feedback, ending
+  participation), accepted via the app's beta acknowledgement gate.
 - [`community-guidelines.md`](community-guidelines.md) →
   `src/app/guidelines/page.tsx` (https://vestige.golf/guidelines). The
   plain-English companion to ToS §5–§6 (the ToS is what binds; this is the
@@ -128,6 +128,16 @@ Contact: **support@pinehollow.studio**. Minimum age: **17**.
   in-region — which the earlier pass had deliberately left out while we
   still believed there was a data-logging switch to find. Details in
   `vestige-ios/docs/azure-content-safety-setup.md`.
+- **2026-09-26** — **The beta opens up, and To play.** The Beta Testing
+  Agreement drops confidentiality and the personal invitation: anyone with
+  the TestFlight link may join, sharing is allowed (please don't post the
+  link publicly, places are limited), and §2 says the old confidentiality
+  obligation has ended, retroactively. The acknowledgement quote becomes
+  "I understand this is a beta."; §6 loses the liability and injunction
+  text. The privacy policy names To play in golf activity, the visibility
+  control and the club-insights example. Both documents and both rendered
+  pages updated together; "Last updated" moved to 26 September 2026 on
+  both.
 
 ## Pending: Messages (written 2026-09-12, NOT yet live)
 

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { siteConfig } from "@/lib/siteConfig";
 
 /**
- * Beta Testing Agreement — the terms a private-beta tester accepts by ticking
+ * Beta Testing Agreement — the terms a beta tester accepts by ticking
  * the acknowledgement box in the app's beta gate. Rendered from
  * `legal/beta-testing-agreement.md`; the two must be kept in step. Linked from
  * the app's beta acknowledgement page (alongside the Terms of Service and
@@ -14,10 +14,10 @@ import { siteConfig } from "@/lib/siteConfig";
 
 export const metadata: Metadata = {
   title: "Beta Testing Agreement",
-  description: `The terms that govern participation in the ${siteConfig.brandName} private beta.`,
+  description: `The terms that govern participation in the ${siteConfig.brandName} beta.`,
 };
 
-const UPDATED = "29 August 2026";
+const UPDATED = "26 September 2026";
 const CONTACT = siteConfig.supportEmail;
 
 const link: React.CSSProperties = {
@@ -31,14 +31,6 @@ const para: React.CSSProperties = {
   lineHeight: 1.72,
   color: "#A8B3C0",
   margin: "12px 0 0",
-};
-
-const list: React.CSSProperties = {
-  fontSize: 15,
-  lineHeight: 1.72,
-  color: "#A8B3C0",
-  margin: "12px 0 0",
-  paddingLeft: 22,
 };
 
 const strong: React.CSSProperties = { color: "#DDE4EA", fontWeight: 600 };
@@ -122,7 +114,7 @@ export default function BetaTermsPage() {
           Beta Testing Agreement
         </h1>
         <p style={{ color: "#5F6B7A", fontSize: 13, margin: "14px 0 40px" }}>
-          The {brandName} private beta · Last updated {UPDATED}
+          The {brandName} beta · Last updated {UPDATED}
         </p>
 
         <p style={{ fontSize: 17, lineHeight: 1.72, color: "rgba(246,244,238,0.85)", margin: 0 }}>
@@ -131,7 +123,7 @@ export default function BetaTermsPage() {
           Wales (company number 17212889) with its registered office at 82A James Carter Road,
           Mildenhall, Bury St. Edmunds, IP28 7DE, United Kingdom
           (&ldquo;{brandName}&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;), governing your
-          participation in the {brandName} private beta programme (the &ldquo;Beta&rdquo;). It
+          participation in the {brandName} beta programme (the &ldquo;Beta&rdquo;). It
           supplements our{" "}
           <Link href="/terms" style={link}>
             Terms of Service
@@ -151,43 +143,33 @@ export default function BetaTermsPage() {
         <p style={{ fontSize: 17, lineHeight: 1.72, color: "rgba(246,244,238,0.85)", margin: "16px 0 0" }}>
           <span style={strong}>You accept this Agreement by ticking the acknowledgement box in
           the app</span>{" "}
-          (&ldquo;I understand this is a private beta build, and I won&rsquo;t share
-          access.&rdquo;) or by otherwise using a beta build. If you do not agree, do not use the
-          Beta.
+          (&ldquo;I understand this is a beta.&rdquo;) or by otherwise using a beta build. If you
+          do not agree, do not use the Beta.
         </p>
 
-        <Section title="1. Your invitation">
+        <Section title="1. Joining the Beta">
           <p style={para}>
-            Access to the Beta is by personal invitation only. Your invitation is{" "}
-            <span style={strong}>personal to you, non-transferable, and revocable</span> by us at
-            any time, for any reason, without notice. Nothing in this Agreement gives you any
-            right to continued access, to the finished product, or to any feature you see during
-            the Beta.
+            The Beta runs on Apple&rsquo;s TestFlight, and anyone who joins through our TestFlight
+            link may take part. No personal invitation is needed.{" "}
+            <span style={strong}>Places are limited:</span> you&rsquo;re welcome to tell a friend
+            about the Beta, but please don&rsquo;t post the link publicly. We may close the link,
+            cap the number of testers, or remove any tester&rsquo;s access at any time, for any
+            reason, without notice. Nothing in this Agreement gives you any right to continued
+            access, to the finished product, or to any feature you see during the Beta.
           </p>
         </Section>
 
-        <Section title="2. Confidentiality">
+        <Section title="2. Talking about the Beta">
           <p style={para}>
-            The Beta is private. The following are our confidential information: the beta app and
-            its builds; its features, designs, and content; its performance and reliability; our
-            plans and roadmap; your invitation and any invite links; and anything else about the
-            Beta that is not already public through us.
+            The Beta is not confidential. You are welcome to talk about it and share screenshots
+            and recordings. Please bear in mind that what you see is unfinished: features,
+            designs, content and performance may change before release, and nothing in a beta
+            build is a promise about the finished app.
           </p>
           <p style={para}>
-            You agree not to share, publish, or disclose any of it without our prior written
-            consent. In particular, you agree not to:
-          </p>
-          <ul style={list}>
-            <li>share the app, your invitation, or any invite link with anyone;</li>
-            <li>
-              post screenshots, screen recordings, or video of the beta app anywhere public,
-              including social media, group chats, and forums;
-            </li>
-            <li>describe, review, or benchmark the Beta publicly.</li>
-          </ul>
-          <p style={para}>
-            This section survives the end of your participation and continues until we release
-            the relevant material publicly ourselves.
+            Earlier versions of this Agreement asked testers to keep the Beta confidential. That
+            obligation has ended and no longer applies to anything, including material you saw
+            before this version.
           </p>
         </Section>
 
@@ -198,7 +180,7 @@ export default function BetaTermsPage() {
             warranty of any kind</span>
             . Everything in it is subject to change. Features may move, change, break, or
             disappear between builds. Your data may be reset, migrated, or deleted during the
-            Beta, including without notice ahead of launch. Do not rely on the Beta as your only
+            Beta, including without notice before version 1.0 or launch. Do not rely on the Beta as your only
             record of anything.
           </p>
         </Section>
@@ -225,25 +207,17 @@ export default function BetaTermsPage() {
 
         <Section title="6. If you break this Agreement">
           <p style={para}>
-            If you breach this Agreement — in particular section 2 (Confidentiality) — we may
-            suspend or permanently revoke your access to the Beta and the Service, and remove
-            your account, immediately and without notice.{" "}
-            <span style={strong}>
-              You are personally liable to us for loss or damage we suffer as a result of your
-              breach
-            </span>
-            , and because unauthorised disclosure may cause harm that damages alone cannot
-            repair, you agree that we are entitled to seek injunctive or other equitable relief
-            to prevent or stop a breach, in addition to any other remedy available to us in law.
+            If you breach this Agreement or our Terms of Service, we may suspend or permanently
+            revoke your access to the Beta and the Service, and remove your account, immediately
+            and without notice. This is in addition to any other remedy available to us in law.
           </p>
         </Section>
 
         <Section title="7. Ending participation">
           <p style={para}>
             You may leave the Beta at any time by deleting the app and your account. We may end
-            the Beta, or your participation in it, at any time. Sections 2 (Confidentiality), 4
-            (Feedback), and 6 (If you break this Agreement) survive the end of your
-            participation.
+            the Beta, or your participation in it, at any time. Sections 4 (Feedback) and 6 (If
+            you break this Agreement) survive the end of your participation.
           </p>
         </Section>
 

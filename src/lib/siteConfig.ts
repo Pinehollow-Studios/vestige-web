@@ -25,18 +25,30 @@ import {
 
 /**
  * The one send. The public beta link is a single TestFlight invite that goes
- * out on this date to the waiting list *as it stands that day* — it is not a
- * rolling invite, and nobody who joins afterwards gets one; the next way in is
- * version 1.0 in January 2027. The site's beta copy (hero note, stats strip,
- * /app CTA, FAQ, roadmap, closing CTA, /progress) says so in words; this is
- * the machine-readable half, for copy that has to change once it has happened.
+ * out on 2 October 2026 to the waiting list *as it stands that day*. It is not
+ * a rolling invite, and nobody who joins afterwards gets one; the next way in
+ * is version 1.0 in January 2027. The site's beta copy (hero note, stats strip,
+ * /app CTA, FAQ, roadmap, closing CTA, /progress, the welcome email, the
+ * /u/<handle> card) switches on the flag below.
+ *
+ * MANUAL SWITCH, nothing is scheduled. Tom sends the link by hand on 2 Oct,
+ * then sets BETA_LINK_SENT = true and TESTFLIGHT_PUBLIC_URL to the public
+ * link, and deploys. Until that deploy every page reads as it does today.
  */
-export const BETA_LINK_SEND_DATE = "2026-10-02T00:00:00Z";
+export const BETA_LINK_SENT: boolean = false;
 
-/** Has the one send already happened? Copy written for people who can
- *  still make the list must not be shown to people who can't. */
+/** The TestFlight public link. Empty until the send; once set (with
+ *  BETA_LINK_SENT), /u/<handle> sends people without the app here instead
+ *  of to the waiting list. */
+export const TESTFLIGHT_PUBLIC_URL: string = "";
+
+/** Has the one send still to happen? Copy written for people who can
+ *  still make the list must not be shown to people who can't. The
+ *  `now` parameter is kept for callers' signatures and ignored: the
+ *  switch is the flag above, never the clock. */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function betaLinkStillToCome(now: Date = new Date()) {
-  return now.getTime() < Date.parse(BETA_LINK_SEND_DATE);
+  return !BETA_LINK_SENT;
 }
 
 export type SiteConfig = {
@@ -166,6 +178,10 @@ export type SiteConfig = {
        * most of (bigger label, brighter dot). Omit for the rest.
        */
       status?: "now" | "headline";
+      /** Marks the public-beta window (the one send), so surfaces that
+       *  only look forward, like the welcome email, can drop it once
+       *  BETA_LINK_SENT is true. Not rendered. */
+      oneSend?: boolean;
     }>;
   };
 
@@ -292,9 +308,14 @@ export const siteConfig: SiteConfig = {
     liveCountMinWeekly: 100,
     liveEyebrowLabel: "joined the waiting list this week",
     headline: [`${COURSES_HEADLINE_PLUS} courses. How many have you `, "played", "?"],
-    waitlistNote:
-      "Join before 2 October and the public beta link is yours.",
-    metaStrip: ["iPhone, iOS 26+", "Free to download", "Beta link goes out 2 Oct"],
+    waitlistNote: BETA_LINK_SENT
+      ? "The public beta link has gone out. Join now and you'll be first to hear when version 1.0 arrives in January."
+      : "Join before 2 October and the public beta link is yours.",
+    metaStrip: [
+      "iPhone, iOS 26+",
+      "Free to download",
+      BETA_LINK_SENT ? "Version 1.0 in January" : "Beta link goes out 2 Oct",
+    ],
   },
 
   // England, Scotland and Wales in turn, so the strip reads as the whole
@@ -336,7 +357,9 @@ export const siteConfig: SiteConfig = {
     { kind: "number", target: COURSES_HEADLINE, suffix: "+", label: "Courses" },
     { kind: "number", target: COUNTRIES_TOTAL, label: "Countries, one map" },
     { kind: "number", target: 0, prefix: "£", label: "Cost at launch" },
-    { kind: "static", value: "2 Oct", label: "Public beta link" },
+    BETA_LINK_SENT
+      ? { kind: "static", value: "Jan", label: "Version 1.0" }
+      : { kind: "static", value: "2 Oct", label: "Public beta link" },
   ],
 
   appPage: {
@@ -347,8 +370,9 @@ export const siteConfig: SiteConfig = {
       headlinePre: "Play it ",
       headlineItalic: "first",
       headlinePost: ".",
-      body:
-        "Join the waiting list. The public beta link goes out once, on 2 October, to everyone on it by then. The App Store release is free.",
+      body: BETA_LINK_SENT
+        ? "Join the waiting list. The public beta link went out on 2 October. Version 1.0 follows in January 2027, publicly available and free."
+        : "Join the waiting list. The public beta link goes out once, on 2 October, to everyone on it by then. Version 1.0 in January is free, and so is everything after.",
       ctaLabel: "Join the waiting list",
       meta: "iPhone, iOS 26+ · Free to download",
     },
@@ -388,7 +412,7 @@ export const siteConfig: SiteConfig = {
     },
     {
       q: "Can I get it outside the UK?",
-      a: "Not at launch. Vestige is on the UK App Store only, because the map is British courses and there is not much in it for you if you have never played one. If you are British and abroad, the app travels fine: it is where you download it that has to be the UK.",
+      a: "At launch, Vestige will be on the UK App Store only, because the map is British courses and there is not much in it for you if you have never played one. If you are British and abroad, the app travels fine: it is where you download it that has to be the UK.",
     },
     {
       q: "What do you do with my data?",
@@ -396,7 +420,9 @@ export const siteConfig: SiteConfig = {
     },
     {
       q: "When can I actually use it?",
-      a: "The public beta link goes out on 2 October 2026. One send, to everyone on the waiting list that day, so join before then and it is yours. There is no second send: join later and the next way in is version 1.0 in January 2027, publicly available and free. Then March 2027 is launch day proper. Free at every step.",
+      a: BETA_LINK_SENT
+        ? "The public beta link went out once, on 2 October 2026, to everyone on the waiting list that day. There is no second send: join now and the next way in is version 1.0 in January 2027, publicly available and free. March 2027 is launch day proper. Free at every step."
+        : "The public beta link goes out on 2 October 2026. One send, to everyone on the waiting list that day, so join before then and it is yours. There is no second send: join later and the next way in is version 1.0 in January 2027, publicly available and free. Then March 2027 is launch day proper. Free at every step.",
     },
   ],
 
@@ -434,7 +460,11 @@ export const siteConfig: SiteConfig = {
         month: "Oct",
         year: "2026",
         label: "Public beta",
-        body: "The TestFlight link, sent once to everyone on the waiting list. There is no second send.",
+        body: BETA_LINK_SENT
+          ? "The TestFlight link, sent once on 2 October to everyone on the waiting list."
+          : "The TestFlight link, sent once to everyone on the waiting list. There is no second send.",
+        ...(BETA_LINK_SENT ? { status: "now" as const } : {}),
+        oneSend: true,
       },
       {
         month: "Jan",
@@ -518,7 +548,9 @@ export const siteConfig: SiteConfig = {
     eyebrowLabel: "already on the list",
     headlinePre: "Be among the ",
     headlineItalic: "first.",
-    sub: "The public beta link goes out once, on 2 October. We'll keep you posted between now and then, and never any noise. Promise.",
+    sub: BETA_LINK_SENT
+      ? "The public beta link has gone out. Join and you'll hear first when version 1.0 arrives in January. Never any noise. Promise."
+      : "The public beta link goes out once, on 2 October. We'll keep you posted between now and then, and never any noise. Promise.",
     ctaLabel: "Count me in",
     forwardNudge:
       "P.S. Know a golfer who'd swear blind they've played more? Forward them this.",
