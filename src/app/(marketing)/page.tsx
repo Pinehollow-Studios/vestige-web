@@ -1,3 +1,4 @@
+import { AuthLinkCatcher } from "@/components/marketing/AuthLinkCatcher";
 import { MarketingApp } from "@/components/marketing/MarketingApp";
 import { ProgressPeek } from "@/components/progress/ProgressPeek";
 import { getWaitlistStats } from "@/lib/waitlistCount";
@@ -11,5 +12,10 @@ export default async function Home() {
   const liveCount =
     stats && stats.weekly > siteConfig.hero.liveCountMinWeekly ? stats : null;
 
-  return <MarketingApp liveCount={liveCount} progressPeek={<ProgressPeek />} />;
+  return (
+    <>
+      <AuthLinkCatcher />
+      <MarketingApp liveCount={liveCount} progressPeek={<ProgressPeek />} />
+    </>
+  );
 }
