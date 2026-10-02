@@ -4,7 +4,7 @@ Everything served at [vestige.golf](https://vestige.golf) for Vestige Golf.
 Renamed from `vestige-marketing` on 2026-09-23: the repo is the whole website,
 not only its marketing pages, and it will also carry the public course
 directory (`/courses/...`, decided by Tom and Jack on 2026-09-23, not yet
-built). Today it holds the pitch, the app page, the progress map, the waiting list, the legal pages, and
+built). Today it holds the pitch, the app page, the progress map, the 1.0 signup, the legal pages, and
 the link-landing pages that universal links fall back to (`/u/<username>`,
 `/course/<id>`, `/list/<id>`, `/society/join/<token>`). The site is live and
 indexable.
@@ -35,16 +35,13 @@ course figures are not typed by hand there; they come from `progressConfig.ts`,
 the same file the /progress map reads, so the hero, the stats and the emails
 cannot drift apart.
 
-Three values change with the release calendar:
+Two values change with the release calendar:
 
-- `BETA_LINK_SENT` + `TESTFLIGHT_PUBLIC_URL` — the **one** send of the public
-  TestFlight link to the waiting list as it stands on 2 October 2026. There is
-  no second send. Nothing is scheduled: Tom sends the link by hand, then sets
-  `BETA_LINK_SENT = true` and `TESTFLIGHT_PUBLIC_URL` to the link, and deploys.
-  The flag (read directly, or through `betaLinkStillToCome()`) switches every
-  line written for people who can still make the list, and the URL sends
-  `/u/<handle>` visitors without the app to TestFlight instead of the waiting
-  list.
+- `TESTFLIGHT_PUBLIC_URL` — the public TestFlight link. It went once to the
+  waiting list on 2 October 2026; since then the beta is by invitation and
+  `/beta` (shared by hand) is the only page that offers it. Every other way in,
+  including the `/u`, `/course` and `/list` fallbacks, is `/app` and the 1.0
+  signup. Empty it to close `/beta` too.
 - `appStoreUrl` — null until the 1.0 listing is live (January 2027). When set,
   the hero swaps the waitlist form for the App Store badge.
 

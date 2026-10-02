@@ -370,5 +370,5 @@ counts above a privacy threshold (§12.2 rules), clubs claiming their pages.
    holes from the collection.)
 3. Multi-course venues: split before or after the directory goes live?
 4. What the front door searches: name only at first, or towns too (needs §4.3.3)?
-5. The CTA before 1.0 is listed: waitlist signup (the list stays open for updates
-   after 2 Oct) or TestFlight? The one send is 2 Oct; anyone after waits for January.
+5. ~~The CTA before 1.0 is listed~~ - answered 2 Oct: `/app` and its 1.0 signup, never
+   TestFlight. Sequencing from here: `docs/site-after-the-beta-plan.md`.

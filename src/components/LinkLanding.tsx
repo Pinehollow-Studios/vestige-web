@@ -25,21 +25,21 @@ export type LinkLandingProps = {
   /** One sentence under the headline. Ends the sentence itself. */
   blurb: string;
   /**
-   * Replaces the default way in (the App Store once live, else the
-   * waiting list) and the small line under it. Only /u/<handle> uses it,
-   * to send people to the public TestFlight link once it has gone out.
+   * Replaces the default way in (the App Store once live, else /app and
+   * its 1.0 signup) and the small line under it. Only /beta uses it, for
+   * the TestFlight link Tom and Jack hand out by invitation.
    */
   cta?: { href: string; label: string; note: string };
 };
 
 export function LinkLanding({ eyebrow, headline, blurb, cta }: LinkLandingProps) {
   const launched = siteConfig.appStoreUrl !== null;
-  const ctaHref = cta ? cta.href : launched ? (siteConfig.appStoreUrl as string) : "/";
+  const ctaHref = cta ? cta.href : launched ? (siteConfig.appStoreUrl as string) : "/app";
   const ctaLabel = cta
     ? cta.label
     : launched
       ? `Get ${siteConfig.brandName}`
-      : "Join the waiting list";
+      : `See ${siteConfig.brandName}`;
 
   return (
     <main
@@ -131,8 +131,8 @@ export function LinkLanding({ eyebrow, headline, blurb, cta }: LinkLandingProps)
         ) : (
           !launched && (
             <p style={{ fontSize: 13, color: "var(--ink-3)", margin: 0 }}>
-              {siteConfig.brandName} is launching soon. Open this link on your
-              iPhone once the app is installed to go straight there.
+              Version 1.0 arrives in January. Once you have the app, open this
+              link on your iPhone to go straight there.
             </p>
           )
         )}

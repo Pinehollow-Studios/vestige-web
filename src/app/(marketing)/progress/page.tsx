@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { BETA_LINK_SENT, siteConfig } from "@/lib/siteConfig";
+import { siteConfig } from "@/lib/siteConfig";
 import {
   progressConfig,
   COUNTIES_TOTAL,
@@ -12,6 +12,8 @@ import {
   milestone,
 } from "@/lib/progressConfig";
 import { CountyAtlas } from "@/components/progress/CountyAtlas";
+import { COUNTY_SHAPES } from "@/components/progress/counties";
+import { getCountyHrefs } from "@/lib/directory/marketing";
 import { ProgressStats } from "@/components/progress/ProgressStats";
 import { PageMotion } from "@/components/marketing/PageMotion";
 import { StickyNav } from "@/components/marketing/StickyNav";
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
       : `How far ${siteConfig.brandName} has come: counties mapped, courses collected, and what we're working on right now.`,
 };
 
-export default function ProgressPage() {
+export default async function ProgressPage() {
   const {
     coursesMapped,
     coursesTotal,
@@ -53,6 +55,9 @@ export default function ProgressPage() {
     screenshot,
   } = progressConfig;
   const completedOn = progressConfig.countries[progressConfig.countries.length - 1]?.completedOn;
+  // Each mapped county links to its page in the course directory. Never
+  // throws: without the directory the map renders exactly as before.
+  const countyHrefs = await getCountyHrefs(COUNTY_SHAPES.map((c) => c.name));
 
   return (
     <div className="fw-root">
@@ -106,6 +111,7 @@ export default function ProgressPage() {
             latest={milestone ? undefined : latestCounty}
             courses={coursesMapped}
             complete={isComplete}
+            countyHrefs={countyHrefs}
           />
           <ProgressStats
             countries={{
@@ -182,19 +188,12 @@ export default function ProgressPage() {
             <h2>
               Want <span className="fw-page-cta-ital">in</span>?
             </h2>
-            {BETA_LINK_SENT ? (
-              <p>
-                Join the waiting list for first word of version 1.0 in January,
-                plus the occasional update like this one. Nothing else.
-              </p>
-            ) : (
-              <p>
-                Join the waiting list. The public beta link goes out to it once, on
-                2 October, plus the occasional update like this one. Nothing else.
-              </p>
-            )}
+            <p>
+              Leave your email for first word of version 1.0 in January, plus
+              the occasional update like this one. Nothing else.
+            </p>
             <Link href="/#join" className="fw-page-cta-btn">
-              Join the waiting list
+              Keep me posted
             </Link>
             <p className="fw-page-cta-meta">iPhone, iOS 26+ · Free to download</p>
           </section>

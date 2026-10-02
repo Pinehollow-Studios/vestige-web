@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { LinkLanding } from "@/components/LinkLanding";
-import { BETA_LINK_SENT, TESTFLIGHT_PUBLIC_URL, siteConfig } from "@/lib/siteConfig";
+import { TESTFLIGHT_PUBLIC_URL, siteConfig } from "@/lib/siteConfig";
 
 /**
  * `vestige.golf/beta` - the link Tom texts to people, so a forwarded
  * invite arrives as a Vestige preview card (this folder's
  * opengraph-image.tsx) rather than TestFlight's generic one. One tap
- * here goes to the public TestFlight link.
+ * here goes to the public TestFlight link. Since 2 Oct 2026 this is the
+ * only page on the site that offers TestFlight.
  *
  * Shared by hand, never advertised: not in the sitemap and noindex,
  * because the testers are asked not to post the link publicly
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
 
 export default function BetaInvitePage() {
   const testFlight =
-    BETA_LINK_SENT && TESTFLIGHT_PUBLIC_URL !== "" && siteConfig.appStoreUrl === null;
+    TESTFLIGHT_PUBLIC_URL !== "" && siteConfig.appStoreUrl === null;
 
   return (
     <LinkLanding

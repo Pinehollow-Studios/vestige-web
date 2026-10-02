@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useId, useMemo, useState, useSyncExternalStore } from "react";
 
 /**
  * The front door's search: an in-page filter over every course's name and
@@ -10,7 +10,16 @@ import { useId, useMemo, useState } from "react";
  * `[name, slug, countyIndex]` per course and the county names once.
  * Enter opens the top result. Without JavaScript the box is inert and the
  * county, style and list links below still reach every course.
+ *
+ * Arriving with `?q=` (the homepage's course search is a plain GET form to
+ * /courses) starts the box filled in. The page is static, so the query is
+ * read on the client after hydration (server snapshot ""), the same way
+ * GlassEmail reads its `?from=` tag; once the visitor types, their text wins.
  */
+
+const subscribeNever = () => () => {};
+const readQueryParam = () => new URLSearchParams(window.location.search).get("q")?.slice(0, 80) ?? "";
+const readQueryParamServer = () => "";
 
 export type SearchRow = readonly [name: string, slug: string, county: number];
 
@@ -36,7 +45,9 @@ export function CourseSearch({
 }) {
   const router = useRouter();
   const inputId = useId();
-  const [query, setQuery] = useState("");
+  const arrivedWith = useSyncExternalStore(subscribeNever, readQueryParam, readQueryParamServer);
+  const [typed, setQuery] = useState<string | null>(null);
+  const query = typed ?? arrivedWith;
 
   const index = useMemo(
     () =>
@@ -96,6 +107,7 @@ export function CourseSearch({
           inputMode="search"
           autoComplete="off"
           spellCheck={false}
+          name="q"
           placeholder="Course name or county"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

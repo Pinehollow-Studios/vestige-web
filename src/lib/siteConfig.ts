@@ -24,32 +24,13 @@ import {
 } from "./progressConfig.ts";
 
 /**
- * The one send. The public beta link is a single TestFlight invite that goes
- * out on 2 October 2026 to the waiting list *as it stands that day*. It is not
- * a rolling invite, and nobody who joins afterwards gets one; the next way in
- * is version 1.0 in January 2027. The site's beta copy (hero note, stats strip,
- * /app CTA, FAQ, roadmap, closing CTA, /progress, the welcome email, the
- * /u/<handle> card) switches on the flag below.
- *
- * MANUAL SWITCH, nothing is scheduled. Tom sends the link by hand on 2 Oct,
- * then sets BETA_LINK_SENT = true and TESTFLIGHT_PUBLIC_URL to the public
- * link, and deploys. Until that deploy every page reads as it does today.
+ * The public TestFlight link. It went once to the waiting list on 2 October
+ * 2026, and the beta has been by invitation since: Tom and Jack hand out
+ * vestige.golf/beta, the one page that links here (Tom, 2026-10-02). No
+ * other page offers TestFlight; everywhere else the way in is the 1.0 list.
+ * Empty it to close /beta too (the page then falls back to its generic way in).
  */
-export const BETA_LINK_SENT: boolean = true;
-
-/** The TestFlight public link. Empty until the send; once set (with
- *  BETA_LINK_SENT), /u/<handle> sends people without the app here instead
- *  of to the waiting list. */
 export const TESTFLIGHT_PUBLIC_URL: string = "https://testflight.apple.com/join/atyEAmqR";
-
-/** Has the one send still to happen? Copy written for people who can
- *  still make the list must not be shown to people who can't. The
- *  `now` parameter is kept for callers' signatures and ignored: the
- *  switch is the flag above, never the clock. */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function betaLinkStillToCome(now: Date = new Date()) {
-  return !BETA_LINK_SENT;
-}
 
 export type SiteConfig = {
   brandName: string;
@@ -95,8 +76,14 @@ export type SiteConfig = {
     metaStrip: ReadonlyArray<string>;
   };
 
-  /** Course marquee — duplicated automatically for seamless loop. */
-  marquee: ReadonlyArray<string>;
+  /**
+   * Course marquee — duplicated automatically for seamless loop. A `slug`
+   * links the name to its directory page, `/courses/<slug>`; the homepage
+   * checks every slug against the directory at render and drops (and logs)
+   * any that don't resolve, so a typo shows as plain text, never a 404.
+   * Scotland and Wales have no pages yet, so their names carry no slug.
+   */
+  marquee: ReadonlyArray<{ name: string; slug?: string }>;
 
   /** Stats strip — four cells. */
   stats: ReadonlyArray<
@@ -125,7 +112,7 @@ export type SiteConfig = {
 
   /**
    * /app — the three small ideas on their own page. The hero copy up
-   * top, then the `features` cards, then one way into the waiting list.
+   * top, then the `features` cards, then one way onto the 1.0 list.
    */
   appPage: {
     /** Three-part headline: [pre, italicWord, post]. */
@@ -151,7 +138,7 @@ export type SiteConfig = {
   };
 
   /** Frequently-asked questions — rendered as accessible accordions. */
-  faq: ReadonlyArray<{ q: string; a: string }>;
+  faq: ReadonlyArray<{ q: string; a: string; link?: { href: string; label: string } }>;
 
   /**
    * Roadmap timeline — the release windows from now to the launch.
@@ -178,9 +165,9 @@ export type SiteConfig = {
        * most of (bigger label, brighter dot). Omit for the rest.
        */
       status?: "now" | "headline";
-      /** Marks the public-beta window (the one send), so surfaces that
-       *  only look forward, like the welcome email, can drop it once
-       *  BETA_LINK_SENT is true. Not rendered. */
+      /** Marks the public-beta window (the one send, 2 Oct 2026), which
+       *  surfaces that only look forward, like the welcome email, leave
+       *  out: nobody signing up now can join it. Not rendered. */
       oneSend?: boolean;
     }>;
   };
@@ -300,66 +287,64 @@ export const siteConfig: SiteConfig = {
 
   nav: [
     { href: "/", label: "Home" },
+    { href: "/courses", label: "Courses" },
     { href: "/app", label: "The app" },
     { href: "/progress", label: "Progress" },
   ],
 
   hero: {
     liveCountMinWeekly: 100,
-    liveEyebrowLabel: "joined the waiting list this week",
+    liveEyebrowLabel: "signed up this week",
     headline: [`${COURSES_HEADLINE_PLUS} courses. How many have you `, "played", "?"],
-    waitlistNote: BETA_LINK_SENT
-      ? "The public beta link has gone out. Join now and you'll be first to hear when version 1.0 arrives in January."
-      : "Join before 2 October and the public beta link is yours.",
+    waitlistNote:
+      "The beta is under way, by invitation. Leave your email and you'll hear the day version 1.0 arrives in January.",
     metaStrip: [
       "iPhone, iOS 26+",
       "Free to download",
-      BETA_LINK_SENT ? "Version 1.0 in January" : "Beta link goes out 2 Oct",
+      "Version 1.0 in January",
     ],
   },
 
   // England, Scotland and Wales in turn, so the strip reads as the whole
   // island wherever it happens to be scrolled to.
   marquee: [
-    "Royal Birkdale",
-    "St Andrews",
-    "Royal Porthcawl",
-    "Sunningdale",
-    "Carnoustie",
-    "Walton Heath",
-    "Royal St George’s",
-    "Muirfield",
-    "Royal St David’s",
-    "Royal Lytham",
-    "Royal Troon",
-    "Royal Liverpool",
-    "St Enodoc",
-    "Royal Dornoch",
-    "Aberdovey",
-    "Saunton",
-    "Turnberry",
-    "Woodhall Spa",
-    "Royal Cinque Ports",
-    "Kingsbarns",
-    "Pennard",
-    "Ganton",
-    "Cruden Bay",
-    "Notts (Hollinwell)",
-    "Nefyn",
-    "Alwoodley",
-    "North Berwick",
-    "Burnham & Berrow",
-    "Trevose",
-    "Machrihanish",
+    { name: "Royal Birkdale", slug: "royal-birkdale-golf-club" },
+    { name: "St Andrews" },
+    { name: "Royal Porthcawl" },
+    { name: "Sunningdale", slug: "sunningdale-golf-club" },
+    { name: "Carnoustie" },
+    { name: "Walton Heath", slug: "walton-heath-golf-club" },
+    { name: "Royal St George’s", slug: "royal-st-georges-golf-club" },
+    { name: "Muirfield" },
+    { name: "Royal St David’s" },
+    { name: "Royal Lytham", slug: "royal-lytham-and-st-annes-golf-club" },
+    { name: "Royal Troon" },
+    { name: "Royal Liverpool", slug: "royal-liverpool-golf-club" },
+    { name: "St Enodoc", slug: "st-enodoc-golf-club" },
+    { name: "Royal Dornoch" },
+    { name: "Aberdovey" },
+    { name: "Saunton", slug: "saunton-golf-club" },
+    { name: "Turnberry" },
+    { name: "Woodhall Spa", slug: "woodhall-spa-golf-club" },
+    { name: "Royal Cinque Ports", slug: "royal-cinque-ports-golf-club" },
+    { name: "Kingsbarns" },
+    { name: "Pennard" },
+    { name: "Ganton", slug: "ganton-golf-club" },
+    { name: "Cruden Bay" },
+    { name: "Notts (Hollinwell)", slug: "hollinwell-golf-club" },
+    { name: "Nefyn" },
+    { name: "Alwoodley", slug: "alwoodley-golf-club" },
+    { name: "North Berwick" },
+    { name: "Burnham & Berrow", slug: "burnham-and-berrow-golf-club" },
+    { name: "Trevose", slug: "trevose-golf-club" },
+    { name: "Machrihanish" },
   ],
 
   stats: [
     { kind: "number", target: COURSES_HEADLINE, suffix: "+", label: "Courses" },
     { kind: "number", target: COUNTRIES_TOTAL, label: "Countries, one map" },
     { kind: "number", target: 0, prefix: "£", label: "Cost at launch" },
-    BETA_LINK_SENT
-      ? { kind: "static", value: "Jan", label: "Version 1.0" }
-      : { kind: "static", value: "2 Oct", label: "Public beta link" },
+    { kind: "static", value: "Jan", label: "Version 1.0" },
   ],
 
   appPage: {
@@ -370,10 +355,8 @@ export const siteConfig: SiteConfig = {
       headlinePre: "Play it ",
       headlineItalic: "first",
       headlinePost: ".",
-      body: BETA_LINK_SENT
-        ? "Join the waiting list. The public beta link went out on 2 October. Version 1.0 follows in January 2027, publicly available and free."
-        : "Join the waiting list. The public beta link goes out once, on 2 October, to everyone on it by then. Version 1.0 in January is free, and so is everything after.",
-      ctaLabel: "Join the waiting list",
+      body: "Version 1.0 arrives in January 2027, publicly available and free. Leave your email and you'll hear the day it lands. Until then the beta runs by invitation.",
+      ctaLabel: "Keep me posted",
       meta: "iPhone, iOS 26+ · Free to download",
     },
   },
@@ -405,6 +388,7 @@ export const siteConfig: SiteConfig = {
     {
       q: "Which courses are in it?",
       a: `Every course in England: all ${COURSES_EXACT_TEXT} of them, from Open Championship links to your local nine-hole pitch & putt, completed county by county with nothing left to add. Scotland and Wales are being mapped next, which takes the map to ${COURSES_TOTAL_TEXT ?? "every"} courses across Great Britain. You can watch it fill in on the progress page.`,
+      link: { href: "/courses", label: "Browse every course" },
     },
     {
       q: "Which countries does it cover?",
@@ -420,9 +404,7 @@ export const siteConfig: SiteConfig = {
     },
     {
       q: "When can I actually use it?",
-      a: BETA_LINK_SENT
-        ? "The public beta link went out once, on 2 October 2026, to everyone on the waiting list that day. There is no second send: join now and the next way in is version 1.0 in January 2027, publicly available and free. March 2027 is launch day proper. Free at every step."
-        : "The public beta link goes out on 2 October 2026. One send, to everyone on the waiting list that day, so join before then and it is yours. There is no second send: join later and the next way in is version 1.0 in January 2027, publicly available and free. Then March 2027 is launch day proper. Free at every step.",
+      a: "Version 1.0 arrives in January 2027, publicly available and free, and March 2027 is launch day proper. Until then Vestige is in beta, by invitation. Leave your email and you'll hear the day 1.0 lands. Free at every step.",
     },
   ],
 
@@ -460,10 +442,8 @@ export const siteConfig: SiteConfig = {
         month: "Oct",
         year: "2026",
         label: "Public beta",
-        body: BETA_LINK_SENT
-          ? "The TestFlight link, sent once on 2 October to everyone on the waiting list."
-          : "The TestFlight link, sent once to everyone on the waiting list. There is no second send.",
-        ...(BETA_LINK_SENT ? { status: "now" as const } : {}),
+        body: "Under way since 2 October, with everyone who was on the list that day.",
+        status: "now",
         oneSend: true,
       },
       {
@@ -546,11 +526,9 @@ export const siteConfig: SiteConfig = {
 
   closingCta: {
     eyebrowLabel: "already on the list",
-    headlinePre: "Be among the ",
+    headlinePre: "Hear it ",
     headlineItalic: "first.",
-    sub: BETA_LINK_SENT
-      ? "The public beta link has gone out. Join and you'll hear first when version 1.0 arrives in January. Never any noise. Promise."
-      : "The public beta link goes out once, on 2 October. We'll keep you posted between now and then, and never any noise. Promise.",
+    sub: "Version 1.0 arrives in January, publicly available and free. Leave your email and you'll hear the day it lands, plus the odd progress update. Never any noise. Promise.",
     ctaLabel: "Count me in",
     forwardNudge:
       "P.S. Know a golfer who'd swear blind they've played more? Forward them this.",
