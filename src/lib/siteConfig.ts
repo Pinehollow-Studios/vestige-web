@@ -35,12 +35,12 @@ import {
  * then sets BETA_LINK_SENT = true and TESTFLIGHT_PUBLIC_URL to the public
  * link, and deploys. Until that deploy every page reads as it does today.
  */
-export const BETA_LINK_SENT: boolean = false;
+export const BETA_LINK_SENT: boolean = true;
 
 /** The TestFlight public link. Empty until the send; once set (with
  *  BETA_LINK_SENT), /u/<handle> sends people without the app here instead
  *  of to the waiting list. */
-export const TESTFLIGHT_PUBLIC_URL: string = "";
+export const TESTFLIGHT_PUBLIC_URL: string = "https://testflight.apple.com/join/atyEAmqR";
 
 /** Has the one send still to happen? Copy written for people who can
  *  still make the list must not be shown to people who can't. The
