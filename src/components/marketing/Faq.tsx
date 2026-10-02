@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { siteConfig } from "@/lib/siteConfig";
 import { accentFor, type Palette } from "./palette";
 import { Reveal } from "./Reveal";
@@ -56,7 +57,23 @@ export function Faq({ palette = "mint" }: { palette?: Palette }) {
                   aria-labelledby={`faq-q-${i}`}
                 >
                   <div className="fw-faq-panel-inner">
-                    <p className="fw-faq-a">{item.a}</p>
+                    <p className="fw-faq-a">
+                      {item.a}
+                      {item.link && (
+                        <>
+                          {" "}
+                          {/* Out of the tab order while its panel is shut:
+                              the closed panel is only collapsed, not gone. */}
+                          <Link
+                            className="fw-faq-link"
+                            href={item.link.href}
+                            tabIndex={isOpen ? undefined : -1}
+                          >
+                            {item.link.label} →
+                          </Link>
+                        </>
+                      )}
+                    </p>
                   </div>
                 </div>
               </div>

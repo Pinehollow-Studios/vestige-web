@@ -9,7 +9,7 @@ import { isSlug } from "./format";
  * answers the frozen slug for a course id, or null.
  *
  * This NEVER throws. Any failure - no data source, the RPC not on this
- * project (it isn't on prod yet), a timeout, a malformed answer - is a
+ * project, a timeout, a malformed answer - is a
  * null, and the caller renders today's landing page. A slug is frozen for
  * the life of a course, so the answer is cached under the umbrella tag.
  */

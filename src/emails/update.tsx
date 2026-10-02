@@ -61,8 +61,8 @@ export default function UpdateEmail() {
       preview={progress.subject}
       footer={
         <>
-          You&rsquo;re getting this because you joined the {siteConfig.brandName}{" "}
-          waiting list.{" "}
+          You&rsquo;re getting this because you signed up for{" "}
+          {siteConfig.brandName} at {siteConfig.domain}.{" "}
           <a
             href="{{{RESEND_UNSUBSCRIBE_URL}}}"
             style={{ color: brand.ink2, textDecoration: "underline" }}

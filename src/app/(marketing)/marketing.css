@@ -513,6 +513,17 @@ html {
   font-size: clamp(20px, 2.2vw, 32px);
   color: rgba(246,244,238,0.55);
 }
+/* Names with a directory page: the strip's own colour until hovered,
+   so the linked and unlinked names read as one line of type. */
+.fw-marquee-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.25s ease;
+}
+.fw-marquee-link:hover,
+.fw-marquee-link:focus-visible {
+  color: #5be4c3;
+}
 .fw-marquee-sep { color: #5BE4C3; font-size: 8px; }
 @keyframes fw-marquee-roll {
   0%   { transform: translateX(0); }
@@ -1043,6 +1054,13 @@ html {
   transition: opacity 0.3s ease 0.04s, transform 0.3s ease 0.04s;
 }
 .fw-faq-item[data-open="true"] .fw-faq-a { opacity: 1; transform: translateY(0); }
+.fw-faq-link {
+  color: #5be4c3;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.fw-faq-link:hover { text-decoration: underline; }
 
 /* ─── Footer ───────────────────────────────────────────────── */
 .fw-footer {
@@ -1826,6 +1844,20 @@ html {
   animation: fw-catlas-fade 500ms ease both;
   animation-delay: calc(620ms + var(--i, 0) * 55ms);
 }
+/* /progress: each mapped county links to its directory page. The beacon
+   and the finale sit over the land, so they must let the clicks through. */
+.fw-catlas[data-linked="1"] .fw-catlas-beacon,
+.fw-catlas[data-linked="1"] .fw-catlas-finale {
+  pointer-events: none;
+}
+.fw-catlas-done a { cursor: pointer; outline: none; }
+.fw-catlas-done a path { transition: fill-opacity 0.2s ease, stroke 0.2s ease; }
+.fw-catlas-done a:hover path,
+.fw-catlas-done a:focus-visible path {
+  fill-opacity: 0.7;
+  stroke: #f6f4ee;
+  stroke-width: 1.2;
+}
 .fw-catlas-legend {
   display: flex;
   justify-content: center;
@@ -2401,6 +2433,68 @@ html {
 }
 .fw-peek-more:hover {
   border-color: rgba(91, 228, 195, 0.7);
+  transform: translateY(-1px);
+}
+
+/* ─── Homepage courses section — a way into /courses ──────── */
+/* Shares the peek's frame and the signup's glass pill, so it reads as
+   one of the homepage's own sections; the search button is outlined
+   rather than filled, so it never competes with the signup's CTA. */
+.fw-dir-search {
+  max-width: 520px;
+}
+.fw-dir-search .fw-email-shell {
+  height: 58px;
+}
+.fw-dir-search .fw-email-shell button {
+  background: rgba(91, 228, 195, 0.1);
+  border: 1px solid rgba(91, 228, 195, 0.45);
+  color: #5be4c3;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+.fw-dir-search .fw-email-shell button:hover {
+  background: rgba(91, 228, 195, 0.18);
+}
+/* The visible field says what it is; the label is for screen readers. */
+.fw-dir-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.fw-dir-ways {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: clamp(22px, 3vw, 30px) auto 0;
+  max-width: 620px;
+}
+.fw-dir-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(246, 244, 238, 0.85);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.25s ease, color 0.25s ease, transform 0.25s ease;
+}
+.fw-dir-chip span {
+  color: rgba(246, 244, 238, 0.45);
+  font-weight: 500;
+  font-feature-settings: "tnum" 1;
+}
+.fw-dir-chip:hover {
+  border-color: rgba(91, 228, 195, 0.5);
+  color: #f6f4ee;
   transform: translateY(-1px);
 }
 /* The map's fill-in and its completion finale are keyframe-driven and

@@ -44,6 +44,8 @@ type LiveCount = { total: number; weekly: number };
 export function MarketingApp({
   liveCount,
   progressPeek,
+  directoryPeek,
+  marqueeLinks,
 }: {
   liveCount: LiveCount | null;
   /**
@@ -52,6 +54,10 @@ export function MarketingApp({
    * this client bundle.
    */
   progressPeek?: React.ReactNode;
+  /** The server-rendered way into /courses (DirectoryPeek), after the stats. */
+  directoryPeek?: React.ReactNode;
+  /** Marquee name -> course slug, for the names whose page exists. */
+  marqueeLinks?: Record<string, string> | null;
 }) {
   const acc = accentFor(PALETTE);
   const [pre, ital, post] = siteConfig.hero.headline;
@@ -160,7 +166,7 @@ export function MarketingApp({
           </p>
 
           <div className="fw-intro-stage" style={stage(680)}>
-            <GlassEmail palette={PALETTE} cta="Save my spot" />
+            <GlassEmail palette={PALETTE} cta="Keep me posted" />
             {/* the carrot — why hand over an email when launch is a year out */}
             <p
               style={{
@@ -205,10 +211,13 @@ export function MarketingApp({
       </section>
 
       {/* ═══ MARQUEE ═══════════════════════════════════════ */}
-      <CourseMarquee />
+      <CourseMarquee links={marqueeLinks} />
 
       {/* ═══ STATS STRIP ═══════════════════════════════════ */}
       <StatsStrip />
+
+      {/* ═══ THE COURSES ═══════════════════════════════════ */}
+      {directoryPeek}
 
       {/* ═══ WHY / WHAT IT IS ══════════════════════════════ */}
       {/* The three feature cards live on /app now — WhatItIs closes

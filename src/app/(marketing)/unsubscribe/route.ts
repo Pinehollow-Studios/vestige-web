@@ -121,7 +121,7 @@ function confirmPage(email: string, token: string): string {
     heading: "Leaving the list?",
     body: `Tap below to stop the ${escapeHtml(
       brandName
-    )} waiting-list emails to <strong style="color:#F3F0E5">${escapeHtml(
+    )} emails to <strong style="color:#F3F0E5">${escapeHtml(
       email
     )}</strong>. You can always rejoin at ${escapeHtml(domain)}.`,
     action: `<form method="POST" action="/unsubscribe?${qs}">
@@ -141,7 +141,7 @@ function donePage(email: string): string {
       email
     )}</strong> from the ${escapeHtml(
       brandName
-    )} waiting list. You won't hear from us again unless you join again at ${escapeHtml(
+    )} list. You won't hear from us again unless you join again at ${escapeHtml(
       domain
     )}.`,
     action: `<span class="muted"><a href="https://${escapeHtml(

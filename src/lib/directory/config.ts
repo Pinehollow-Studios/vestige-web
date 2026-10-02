@@ -10,9 +10,9 @@ import { siteConfig } from "@/lib/siteConfig";
 
 /**
  * THE indexing switch. While `false` the whole directory is
- * `noindex, nofollow`, robots.ts does not list its sitemap, and old
- * `/course/<uuid>` share links keep rendering today's landing page instead
- * of redirecting.
+ * `noindex, nofollow` and robots.ts does not list its sitemap. (Old
+ * `/course/<uuid>` share links redirect to `/courses/<slug>` either way,
+ * since 2 Oct 2026.)
  *
  * Flipping it to `true` is Tom's go-live act, and only once the plan's §6
  * "Index go-live bar" is met (every page at the §3 minimum, Jack's rewrites

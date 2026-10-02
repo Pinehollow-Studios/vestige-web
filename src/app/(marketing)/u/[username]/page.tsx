@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { LinkLanding } from "@/components/LinkLanding";
-import { BETA_LINK_SENT, TESTFLIGHT_PUBLIC_URL, siteConfig } from "@/lib/siteConfig";
+import { siteConfig } from "@/lib/siteConfig";
 
 /**
  * Web fallback for the `https://vestige.golf/u/<username>` universal
  * link (CLAUDE.md §10.1). When the Vestige app is installed, iOS opens
  * the app straight to the profile and this page never renders.
  * Otherwise the link lands here: a graceful "@username is on Vestige"
- * card pointing at the waiting list (pre-launch) or the App Store. Once
- * the public beta link has gone out (BETA_LINK_SENT with
- * TESTFLIGHT_PUBLIC_URL set, flipped by hand in siteConfig), the card
- * points at TestFlight instead, until the App Store listing takes over.
+ * card pointing at /app and its 1.0 signup (pre-launch) or the App Store.
+ * Never TestFlight: the beta is by invitation since 2 Oct 2026, so a
+ * tester sharing their profile must not hand out the link (Tom,
+ * 2026-10-02; only /beta does).
  *
  * The chrome is `LinkLanding`, shared with the course / list / society
  * fallbacks so the four cannot drift apart (share audit, 2026-08-30).
@@ -47,23 +47,11 @@ export default async function ProfileInvitePage({
 }) {
   const { username } = await params;
   const handle = cleanUsername(username);
-  const testFlight =
-    BETA_LINK_SENT && TESTFLIGHT_PUBLIC_URL !== "" && siteConfig.appStoreUrl === null;
-
   return (
     <LinkLanding
       eyebrow={siteConfig.brandName}
       headline={`@${handle}`}
       blurb={`is keeping their golf collection on ${siteConfig.brandName}. ${siteConfig.tagline}`}
-      cta={
-        testFlight
-          ? {
-              href: TESTFLIGHT_PUBLIC_URL,
-              label: "Get the beta on TestFlight",
-              note: `${siteConfig.brandName} is in beta. It needs an iPhone on iOS 26 or later and Apple’s free TestFlight app. Once it’s installed, open this link again to go straight to @${handle}.`,
-            }
-          : undefined
-      }
     />
   );
 }

@@ -35,6 +35,7 @@ export function CountyAtlas({
   latest,
   courses,
   complete,
+  countyHrefs,
 }: {
   completed: ReadonlyArray<string>;
   latest?: string;
@@ -42,6 +43,13 @@ export function CountyAtlas({
   courses?: number;
   /** Every country mapped — runs the finale instead of the legend. */
   complete: boolean;
+  /**
+   * Map county name -> its directory page (/courses/county/<slug>). When
+   * given, each mapped county is a link and the figure becomes a group of
+   * links rather than one image. /progress passes it; the homepage peek
+   * doesn't, so its map stays a picture with one way through below it.
+   */
+  countyHrefs?: Record<string, string> | null;
 }) {
   const known = new Set(COUNTY_SHAPES.map((s) => s.name));
   const unknown = completed.filter((n) => !known.has(n));
@@ -92,7 +100,10 @@ export function CountyAtlas({
     <figure
       className="fw-catlas"
       data-complete={complete ? "1" : "0"}
-      role="img"
+      data-linked={countyHrefs ? "1" : undefined}
+      // An image's children are hidden from assistive tech, so a map
+      // carrying county links has to be a group for them to be reachable.
+      role={countyHrefs ? "group" : "img"}
       aria-label={label}
       style={vars as CSSProperties}
     >
@@ -172,18 +183,28 @@ export function CountyAtlas({
           </g>
         )}
         <g className="fw-catlas-done">
-          {done.map((s, i) => (
-            <path
-              key={s.name}
-              d={s.d}
-              fillRule="evenodd"
-              style={{ "--i": i } as CSSProperties}
-            >
-              <title>{`${s.name} — ${
-                !complete && s.name === latest ? "just added" : "mapped"
-              }`}</title>
-            </path>
-          ))}
+          {done.map((s, i) => {
+            const path = (
+              <path
+                key={s.name}
+                d={s.d}
+                fillRule="evenodd"
+                style={{ "--i": i } as CSSProperties}
+              >
+                <title>{`${s.name} — ${
+                  !complete && s.name === latest ? "just added" : "mapped"
+                }`}</title>
+              </path>
+            );
+            const href = countyHrefs?.[s.name];
+            return href ? (
+              <a key={s.name} href={href} aria-label={`Golf courses in ${s.name}`}>
+                {path}
+              </a>
+            ) : (
+              path
+            );
+          })}
         </g>
         {latestShape && (
           <g className="fw-catlas-beacon" aria-hidden="true">

@@ -55,7 +55,7 @@ export async function sendWelcomeEmail(email: string): Promise<void> {
         from: `${siteConfig.brandName} <hello@${siteConfig.domain}>`,
         to: email,
         reply_to: siteConfig.contactEmail,
-        subject: `You're on the list — welcome to ${siteConfig.brandName}`,
+        subject: `Welcome to ${siteConfig.brandName}: you're on the list`,
         html,
         text,
         headers: unsubHeaders,

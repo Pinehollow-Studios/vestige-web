@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
 import { LinkLanding, cleanNameHint } from "@/components/LinkLanding";
 import { siteConfig } from "@/lib/siteConfig";
-import { DIRECTORY_INDEXABLE } from "@/lib/directory/config";
 import { isUuid, slugForCourseId } from "@/lib/directory/lookup";
 
 /**
@@ -15,10 +14,12 @@ import { isUuid, slugForCourseId } from "@/lib/directory/lookup";
  * name is display-only; the app does the real id -> course resolution
  * on its side.
  *
- * Once the course directory is live (DIRECTORY_INDEXABLE), a uuid that
- * resolves to a course 308s to its permanent page, `/courses/<slug>`. Any
- * miss - the switch off, not a uuid, an unknown course, the lookup failing
- * or not on this project yet - renders exactly the landing page below.
+ * A uuid that resolves to a course 308s to its permanent page,
+ * `/courses/<slug>`, whether or not the directory is indexed yet: the
+ * course page is a better landing than this card either way (Tom,
+ * 2026-10-02, slice 2 of docs/site-after-the-beta-plan.md). Any miss -
+ * not a uuid, an unknown course, the lookup failing - renders exactly the
+ * landing page below.
  */
 
 type Params = Promise<{ id: string }>;
@@ -45,12 +46,10 @@ export default async function CourseLinkPage({
   params: Params;
   searchParams: SearchParams;
 }) {
-  if (DIRECTORY_INDEXABLE) {
-    const { id } = await params;
-    // slugForCourseId never throws; the redirect sits outside any try.
-    const slug = isUuid(id) ? await slugForCourseId(id) : null;
-    if (slug) permanentRedirect(`/courses/${slug}`);
-  }
+  const { id } = await params;
+  // slugForCourseId never throws; the redirect sits outside any try.
+  const slug = isUuid(id) ? await slugForCourseId(id) : null;
+  if (slug) permanentRedirect(`/courses/${slug}`);
 
   const name = cleanNameHint((await searchParams).n);
 
