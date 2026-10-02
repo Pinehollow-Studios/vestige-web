@@ -6,8 +6,9 @@ import { siteConfig } from "@/lib/siteConfig";
 /**
  * The preview card for `vestige.golf/beta` - what a texted invite shows in
  * Messages / WhatsApp. Same construction as the site card
- * (app/opengraph-image.tsx): brand dark, one mint glow, lockup, headline,
- * meta line. 1200×630, generated at build time.
+ * (app/opengraph-image.tsx) - lockup, headline, meta line - but on the
+ * ocean gradient with mint and lime glows, the accent gradient in the text,
+ * 1200×630, generated at build time.
  */
 
 export const alt = "The Vestige beta is open.";
@@ -24,10 +25,16 @@ export default async function Image() {
   const glyphSrc = `data:image/png;base64,${glyph.toString("base64")}`;
 
   const ink = "#F6F4EE";
-  const mint = "#5BE4C3";
-  const muted = "#6E7A89";
-  const sub = "#9BA7B5";
-  const dot = "#3a4654";
+  const sub = "#B4C0CC";
+  const muted = "#8C99A8";
+  const dot = "#4A5A6C";
+  // The signature gradient (marketing.css --gradient-accent), drawn
+  // through the text it sits on.
+  const accentText = {
+    backgroundImage: "linear-gradient(135deg, #5BE4C3 0%, #8FE85B 100%)",
+    backgroundClip: "text",
+    color: "transparent",
+  } as const;
 
   const meta = ["iPhone, iOS 26+", "Free", `${siteConfig.domain}/beta`];
 
@@ -40,10 +47,15 @@ export default async function Image() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          // The mint glow sits in the ground itself: an absolutely placed
-          // glow box (as on the site card) renders with a hard edge.
-          background:
-            "radial-gradient(circle at 85% 12%, rgba(91,228,195,0.20) 0%, rgba(91,228,195,0) 42%), #06090E",
+          // Gradient-led (Tom, 2026-10-02): the site's ocean under a mint
+          // glow top-right and a lime one bottom-left, all in the ground
+          // itself - an absolutely placed glow box (as on the site card)
+          // renders with a hard edge.
+          background: [
+            "radial-gradient(circle at 88% 8%, rgba(91,228,195,0.42) 0%, rgba(91,228,195,0) 48%)",
+            "radial-gradient(circle at 6% 104%, rgba(143,232,91,0.24) 0%, rgba(143,232,91,0) 44%)",
+            "radial-gradient(ellipse at 50% 40%, #26405E 0%, #1B2D42 48%, #0E1822 100%)",
+          ].join(", "),
           padding: "76px 84px",
           fontFamily: "Manrope",
           position: "relative",
@@ -77,7 +89,7 @@ export default async function Image() {
               color: ink,
             }}
           >
-            The beta is&nbsp;<span style={{ color: mint }}>open.</span>
+            The beta is&nbsp;<span style={accentText}>open.</span>
           </div>
           <div
             style={{
@@ -105,7 +117,7 @@ export default async function Image() {
           {meta.map((item, i) => (
             <div key={item} style={{ display: "flex", alignItems: "center" }}>
               {i > 0 && <div style={{ display: "flex", margin: "0 14px", color: dot }}>·</div>}
-              <div style={{ display: "flex", color: i === meta.length - 1 ? mint : muted }}>
+              <div style={i === meta.length - 1 ? { display: "flex", ...accentText } : { display: "flex", color: muted }}>
                 {item}
               </div>
             </div>
