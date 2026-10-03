@@ -1,0 +1,52 @@
+---
+/** A curated list, in its order when it has one. */
+import Directory from "../../../layouts/Directory.astro";
+import Section from "../../../components/directory/Section.astro";
+import Rows from "../../../components/directory/Rows.astro";
+import AppPrompt from "../../../components/directory/AppPrompt.astro";
+import { listCourses, loadDirectory } from "../../../lib/directory/data";
+import { byName, plural, styleLabel } from "../../../lib/directory/format";
+import { breadcrumbList, courseItemList, graph } from "../../../lib/directory/jsonLd";
+import type { DirectoryCourse, DirectoryList } from "../../../lib/directory/types";
+
+export async function getStaticPaths() {
+  const dir = await loadDirectory();
+  return dir.lists.map((list) => ({
+    params: { slug: list.slug },
+    props: { list, courses: listCourses(dir, list.slug) },
+  }));
+}
+
+const { list, courses } = Astro.props as {
+  list: DirectoryList;
+  courses: Array<DirectoryCourse & { position: number }>;
+};
+const rows = (list.is_ordered ? courses : [...courses].sort(byName)).map((c) => ({
+  href: `/courses/${c.slug}`,
+  name: c.name,
+  meta: [styleLabel(c.style), c.county_name].filter(Boolean).join(" · "),
+  position: list.is_ordered ? c.position : undefined,
+}));
+const path = `/courses/list/${list.slug}`;
+---
+
+<Directory
+  title={list.name}
+  description={list.description?.trim() || `${list.name}: ${plural(courses.length, "course", "courses")} on Vestige.`}
+  crumbs={[{ label: "Courses", href: "/courses" }, { label: list.name }]}
+  structured={graph([
+    courseItemList(list.name, path, courses, list.is_ordered),
+    breadcrumbList([
+      { name: "Courses", path: "/courses" },
+      { name: list.name, path },
+    ]),
+  ])}
+>
+  <h1 class="dx-title">{list.name}</h1>
+  <p class="dx-sub">{plural(courses.length, "course", "courses")}{list.is_ordered ? ", in order" : ""}</p>
+  {list.description && <p class="dx-lede">{list.description.trim()}</p>}
+  <Section title={list.is_ordered ? "The list" : "Every course on it"}>
+    <Rows rows={rows} ordered={list.is_ordered} />
+  </Section>
+  <AppPrompt heading="How many have you ticked off?" />
+</Directory>

@@ -1,0 +1,182 @@
+---
+/**
+ * A course, /courses/<slug> (flat and permanent; docs/course-directory-plan.md §3):
+ * the facts, Jack's description, where it sits, the Vestige Index where the
+ * view returns it, the four nearest courses, the club's website.
+ */
+import Directory from "../../layouts/Directory.astro";
+import Section from "../../components/directory/Section.astro";
+import Rows from "../../components/directory/Rows.astro";
+import AppPrompt from "../../components/directory/AppPrompt.astro";
+import { loadDirectory, summary } from "../../lib/directory/data";
+import {
+  courseKind,
+  excerpt,
+  formatMiles,
+  formatNumber,
+  nearestCourses,
+  safeHttpUrl,
+  styleLabel,
+  websiteHost,
+} from "../../lib/directory/format";
+import { breadcrumbList, golfCourse, graph } from "../../lib/directory/jsonLd";
+import type { DirectoryCourse } from "../../lib/directory/types";
+
+export async function getStaticPaths() {
+  const dir = await loadDirectory();
+  return dir.courses.map((course) => ({ params: { slug: course.slug }, props: { course } }));
+}
+
+const { course } = Astro.props as { course: DirectoryCourse };
+const dir = await loadDirectory();
+const all = dir.courses.map(summary);
+const inCounty = all.filter((c) => c.county_slug === course.county_slug).length;
+const nearby = nearestCourses(summary(course), all, 4);
+const ordered = new Map(dir.lists.map((l) => [l.slug, l.is_ordered]));
+const memberships = [...course.lists].sort((a, b) => a.name.localeCompare(b.name, "en-GB"));
+const website = safeHttpUrl(course.website);
+const style = styleLabel(course.style);
+const description = course.description?.trim();
+
+const facts: Array<{ label: string; value: string }> = [];
+if (course.par != null) facts.push({ label: "Par", value: String(course.par) });
+if (course.yards != null) facts.push({ label: "Yards", value: formatNumber(course.yards) });
+if (course.hole_count != null) facts.push({ label: "Holes", value: String(course.hole_count) });
+if (style) facts.push({ label: "Style", value: style });
+if (course.established != null) facts.push({ label: "Founded", value: String(course.established) });
+
+const fallback = `${course.name} is a ${style?.toLowerCase() ?? "golf"} course in ${course.county_name}.`;
+const countyPath = `/courses/county/${course.county_slug}`;
+const structured = graph([
+  golfCourse(course, website),
+  breadcrumbList([
+    { name: "Courses", path: "/courses" },
+    { name: course.county_name, path: countyPath },
+    { name: course.name, path: `/courses/${course.slug}` },
+  ]),
+]);
+---
+
+<Directory
+  title={`${course.name}, ${course.county_name}`}
+  description={excerpt(description || fallback)}
+  crumbs={[
+    { label: "Courses", href: "/courses" },
+    { label: course.county_name, href: countyPath },
+    { label: course.name },
+  ]}
+  structured={structured}
+>
+  <h1 class="dx-title">{course.name}</h1>
+  <p class="dx-sub">{courseKind(course)} in <a href={countyPath}>{course.county_name}</a></p>
+
+  {
+    facts.length > 0 && (
+      <dl class="facts">
+        {facts.map((f) => (
+          <div>
+            <dt>{f.label}</dt>
+            <dd class="v-tabular">{f.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )
+  }
+
+  {description && description.split(/\n\s*\n/).map((para) => <p class="dx-lede">{para.trim()}</p>)}
+
+  {
+    course.vestige_index != null && (
+      <div class="index">
+        <span class="v-hero-numeral">{course.vestige_index}</span>
+        <span>
+          <strong>Vestige Index</strong>
+          <span class="v-meta">out of 100</span>
+        </span>
+      </div>
+    )
+  }
+
+  <Section title="Where it sits">
+    <Rows
+      rows={[
+        {
+          href: countyPath,
+          name:
+            inCounty > 1
+              ? `1 of ${formatNumber(inCounty)} courses in ${course.county_name}`
+              : `The only course in ${course.county_name}`,
+        },
+        ...memberships.map((m) => ({
+          href: `/courses/list/${m.slug}`,
+          name: m.name,
+          end: ordered.get(m.slug) !== false ? `No. ${m.position}` : null,
+        })),
+      ]}
+    />
+  </Section>
+
+  {
+    nearby.length > 0 && (
+      <Section title="Nearby" note="The nearest courses, as the crow flies.">
+        <Rows
+          rows={nearby.map(({ course: near, km }) => ({
+            href: `/courses/${near.slug}`,
+            name: near.name,
+            meta: [styleLabel(near.style), near.county_slug !== course.county_slug ? near.county_name : null]
+              .filter(Boolean)
+              .join(" · "),
+            end: formatMiles(km),
+          }))}
+        />
+      </Section>
+    )
+  }
+
+  {
+    website && (
+      <Section title="The club">
+        <Rows rows={[{ href: website, name: "Club website", meta: websiteHost(website) ?? website, external: true }]} />
+      </Section>
+    )
+  }
+
+  <AppPrompt />
+</Directory>
+
+<style>
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: var(--s3);
+    margin: var(--s7) 0 0;
+  }
+  .facts div {
+    padding: var(--s4);
+    background: var(--v-surface-raised);
+    box-shadow: var(--card-edge);
+    border-radius: var(--r-lg);
+  }
+  dt {
+    font-size: var(--t-ui-meta);
+    color: var(--v-text-secondary);
+  }
+  dd {
+    margin: var(--s1) 0 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t-h3);
+  }
+  .index {
+    display: flex;
+    align-items: center;
+    gap: var(--s4);
+    margin-top: var(--s7);
+  }
+  .index .v-hero-numeral {
+    color: var(--v-accent-ink);
+  }
+  .index > span:last-child {
+    display: grid;
+  }
+</style>

@@ -1,8 +1,10 @@
 ---
 /**
  * The page's one primary call to action (the gradient button): word of
- * version 1.0. The form is wired to an Astro Action (Resend + Supabase)
- * in the next step of release 1; until then it posts nowhere.
+ * version 1.0. Posts to /api/notify (Resend + Supabase + the welcome
+ * email). With JavaScript it submits in place; without, the form posts and
+ * the endpoint redirects back with ?joined=1. A `?from=` tag on the page
+ * URL rides along as the signup's source; `website` is a honeypot.
  */
 ---
 
@@ -16,7 +18,11 @@
         we won’t fill your inbox. The odd postcard from the map at most.
       </p>
     </div>
-    <form class="form" method="post" action="#notify">
+    <form class="form" method="post" action="/api/notify" data-notify>
+      <input type="hidden" name="source" value="" />
+      <div class="trap" aria-hidden="true">
+        <label>Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
+      </div>
       <label class="v-visually-hidden" for="signup-email">Email address</label>
       <input
         id="signup-email"
@@ -27,6 +33,7 @@
         required
       />
       <button class="v-button v-button--primary" type="submit">Keep me posted</button>
+      <p class="status" role="status" aria-live="polite" data-status></p>
       <p class="v-meta fine">
         iPhone, iOS 26 or later. We’ll only email you about Vestige. <a href="/privacy">Privacy</a>
       </p>
@@ -34,7 +41,59 @@
   </div>
 </section>
 
+<script>
+  for (const form of document.querySelectorAll<HTMLFormElement>("[data-notify]")) {
+    const status = form.querySelector<HTMLElement>("[data-status]")!;
+    const button = form.querySelector<HTMLButtonElement>("button")!;
+    const source = form.querySelector<HTMLInputElement>('input[name="source"]')!;
+    source.value = new URLSearchParams(location.search).get("from") ?? "";
+
+    const joined = new URLSearchParams(location.search).get("joined");
+    if (joined === "1") status.textContent = "You’re on the list. Check your inbox for a welcome note.";
+    if (joined === "0") status.textContent = "That didn’t go through. Try again in a moment.";
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      button.disabled = true;
+      status.textContent = "Saving…";
+      try {
+        const res = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+        const body = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+        if (body.ok) {
+          form.reset();
+          source.value = new URLSearchParams(location.search).get("from") ?? "";
+          status.textContent = "You’re on the list. Check your inbox for a welcome note.";
+        } else {
+          status.textContent = body.error ?? "That didn’t go through. Try again in a moment.";
+        }
+      } catch {
+        status.textContent = "That didn’t go through. Try again in a moment.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+</script>
+
 <style>
+  .trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .status:empty {
+    display: none;
+  }
+  .status {
+    font-weight: 600;
+    color: var(--v-accent-ink);
+  }
   .signup {
     padding-block: var(--section-gap) 0;
   }

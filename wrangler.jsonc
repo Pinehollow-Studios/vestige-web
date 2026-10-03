@@ -12,16 +12,26 @@
   "observability": { "enabled": true },
   // Unknown paths get the site's own 404 page (src/pages/404.astro).
   "assets": { "not_found_handling": "404-page" },
+  // vestige.golf itself. www is redirected by workers/www-redirect.
+  "routes": [{ "pattern": "vestige.golf", "custom_domain": true }],
   "workers_dev": false,
   "preview_urls": false,
-  "vars": { "SITE_ENV": "production" },
+  "vars": {
+    "SITE_ENV": "production",
+    "SUPABASE_URL": "https://ujbnupjrbroskzwaeulj.supabase.co",
+    "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqYm51cGpyYnJvc2t6d2FldWxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MTAyNzYsImV4cCI6MjA5NjI4NjI3Nn0.L85___bzXd4pHk2YwqF3Ubk8t9_DGpOIIaxYuI8mlOY"
+  },
   "env": {
     "staging": {
       // next.vestige.golf, behind Cloudflare Access (the same Google gate as
       // the bunker). Never indexed: SITE_ENV is not "production".
       "name": "vestige-web-staging",
       "workers_dev": true,
-      "vars": { "SITE_ENV": "staging" }
+      "vars": {
+        "SITE_ENV": "staging",
+        "SUPABASE_URL": "https://ujbnupjrbroskzwaeulj.supabase.co",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqYm51cGpyYnJvc2t6d2FldWxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3MTAyNzYsImV4cCI6MjA5NjI4NjI3Nn0.L85___bzXd4pHk2YwqF3Ubk8t9_DGpOIIaxYuI8mlOY"
+      }
     }
   }
 }

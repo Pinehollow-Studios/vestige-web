@@ -1,0 +1,16 @@
+---
+/** Web fallback for a shared list, vestige.golf/list/<uuid>. List titles are
+ *  user-written and stay out of URLs, so the page stays generic. */
+import LinkLanding from "../../components/LinkLanding.astro";
+import { site } from "../../config/site";
+
+export const prerender = false;
+---
+
+<LinkLanding
+  title="A collection"
+  description={`Someone shared a collection of golf courses on ${site.name}.`}
+  label="Collection"
+  headline="A collection of courses"
+  blurb={`Someone shared a list of golf courses with you on ${site.name}. ${site.tagline}`}
+/>

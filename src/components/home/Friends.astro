@@ -5,6 +5,8 @@
  */
 import { Picture } from "astro:assets";
 import { caption, photos } from "../../data/photos";
+import { screens } from "../../data/screens";
+import PhoneFrame from "../PhoneFrame.astro";
 
 const photo = photos.arthursSeat;
 ---
@@ -21,11 +23,14 @@ const photo = photos.arthursSeat;
   />
   <div class="scrim" aria-hidden="true"></div>
   <div class="v-container content">
-    <h2 id="friends-title">A polite competition.</h2>
-    <p>
-      Add your friends and see whose collection runs deepest. Who’s finished Surrey, who’s
-      never been north of Watford, who keeps claiming they’ve played St Andrews.
-    </p>
+    <div class="text">
+      <h2 id="friends-title">A polite competition.</h2>
+      <p>
+        Add your friends and see whose collection runs deepest. Who’s finished Surrey, who’s
+        never been north of Watford, who keeps claiming they’ve played St Andrews.
+      </p>
+    </div>
+    <PhoneFrame screen={screens.feedRound} maxWidth={260} class="friends-phone" />
   </div>
   <p class="credit">{caption(photo)}</p>
 </section>
@@ -64,8 +69,26 @@ const photo = photos.arthursSeat;
   }
   .content {
     display: grid;
-    gap: var(--s4);
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--s12);
     padding-block: var(--s16);
+  }
+  .text {
+    display: grid;
+    gap: var(--s4);
+  }
+  .content :global(.friends-phone) {
+    width: 240px;
+    transform: rotate(-2.5deg) translateY(var(--s7));
+  }
+  @media (max-width: 860px) {
+    .content {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .content :global(.friends-phone) {
+      display: none;
+    }
   }
   h2 {
     font-size: clamp(2.25rem, 1.5rem + 3.4vw, 4rem);

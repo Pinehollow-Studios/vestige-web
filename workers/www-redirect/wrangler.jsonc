@@ -1,0 +1,10 @@
+{
+  // npm run deploy:www
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "vestige-www-redirect",
+  "main": "index.js",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [{ "pattern": "www.vestige.golf", "custom_domain": true }]
+}

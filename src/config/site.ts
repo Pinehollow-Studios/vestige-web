@@ -26,6 +26,12 @@ export const site = {
   },
 } as const;
 
+/**
+ * The public TestFlight link. The beta is by invitation since 2 Oct 2026:
+ * only /beta, shared by hand, offers it.
+ */
+export const testflightUrl = "https://testflight.apple.com/join/atyEAmqR";
+
 /** The main navigation, in order. Sections join as their releases land. */
 export const nav: ReadonlyArray<{ href: string; label: string }> = [
   { href: "/courses", label: "Courses" },

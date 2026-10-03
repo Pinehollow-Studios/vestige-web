@@ -13,12 +13,15 @@
     "preview": "astro build && wrangler dev",
     "check": "astro check",
     "sync:kit": "node scripts/sync-design-kit.mjs",
-    "deploy:staging": "SITE_ENV=staging CLOUDFLARE_ENV=staging astro build && wrangler deploy"
+    "deploy:staging": "SITE_ENV=staging CLOUDFLARE_ENV=staging astro build && wrangler deploy",
+    "deploy:production": "SITE_ENV=production astro build && wrangler deploy",
+    "deploy:www": "wrangler deploy --config workers/www-redirect/wrangler.jsonc"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.3",
     "@astrojs/sitemap": "^3.7.4",
-    "astro": "^7.3.5"
+    "astro": "^7.3.5",
+    "marked": "^18.0.14"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

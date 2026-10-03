@@ -1,0 +1,16 @@
+---
+/** Web fallback for old society invite links (societies were removed from
+ *  the app; the path stays claimed so the links still land somewhere). */
+import LinkLanding from "../../../components/LinkLanding.astro";
+import { site } from "../../../config/site";
+
+export const prerender = false;
+---
+
+<LinkLanding
+  title="A link to Vestige"
+  description={`${site.name}. ${site.tagline}`}
+  label={site.name}
+  headline={site.tagline}
+  blurb={site.description}
+/>

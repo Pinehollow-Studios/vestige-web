@@ -1,143 +1,198 @@
 ---
 /**
- * How the app works, in three steps, beside a real photograph. The scroll
- * walkthrough of real app screens (signature scene two) replaces the photo
- * once the screenshots are in.
+ * Signature scene two: the app, for real. On wide screens the phone pins
+ * while four steps scroll past, and its screen changes to match the step
+ * in view (a few lines of script below; without it, the first screen
+ * stays and every step still reads). On phones each step carries its own
+ * screen inline.
  */
-import { Picture } from "astro:assets";
-import { caption, photos } from "../../data/photos";
+import { screens, type Screen } from "../../data/screens";
+import PhoneFrame from "../PhoneFrame.astro";
 import HoleSketch from "../HoleSketch.astro";
 
-const steps = [
+const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
   {
-    title: "Find a course",
-    body: "Search by name or wander the map. Every course in England is there, with Scotland and Wales on the way.",
+    title: "Your map, front and centre",
+    body: "Open the app and there’s England, county by county, your played courses glowing. Search for any course, or wander the map and see what’s near.",
+    screen: screens.homeMap,
   },
   {
     title: "Tap to mark it played",
-    body: "One tap and it’s in your collection. Add a score if you like; nobody’s checking your handicap.",
+    body: "Every course has its own page: the facts, its outline from above, where it ranks. One tap and it’s yours. Add a score if you like; nobody’s checking your handicap.",
+    screen: screens.courseHankleySatellite,
   },
   {
-    title: "Watch the map fill in",
-    body: "Counties turn mint as you complete them. Lists like the Top 100 tick down. It gets moreish.",
+    title: "Lists to work through",
+    body: "The Top 100, the Open venues, every course in your county. Each one ticks down as you go. It gets moreish.",
+    screen: screens.listTop100,
+  },
+  {
+    title: "A collection to be proud of",
+    body: "Your profile keeps the lot: courses played, counties finished, your top three. The kind of thing you’ll show people at the bar.",
+    screen: screens.profile,
   },
 ];
-const photo = photos.teeHeather;
 ---
 
-<section class="v-container how v-reveal" aria-labelledby="how-title">
-  <figure class="photo">
-    <Picture
-      src={photo.src}
-      alt={photo.alt}
-      formats={["avif", "webp"]}
-      widths={[480, 800, 1200]}
-      sizes="(max-width: 860px) 100vw, 45vw"
-      loading="lazy"
-    />
-    <figcaption>{caption(photo)}</figcaption>
-  </figure>
-  <div class="steps">
-    <h2 id="how-title">Collecting courses, made simple.</h2>
-    <ol>
+<section class="v-container walk" aria-labelledby="walk-title" data-walk>
+  <div class="head v-reveal">
+    <h2 id="walk-title">Collecting courses, made simple.</h2>
+    <p class="v-lead">Free on iPhone. No scorecards to fill in, no swing to fix. Just the places you’ve played.</p>
+  </div>
+
+  <div class="body">
+    <div class="stage" aria-hidden="true">
+      <div class="stack">
+        {
+          steps.map((step, i) => (
+            <div class="slide" data-slide={i} data-on={i === 0 ? "" : undefined}>
+              <PhoneFrame screen={step.screen} maxWidth={320} />
+            </div>
+          ))
+        }
+      </div>
+      <HoleSketch class="sketch" />
+    </div>
+
+    <ol class="steps">
       {
         steps.map((step, i) => (
-          <li>
-            <span class="num v-tabular">{i + 1}</span>
-            <div>
-              <h3>{step.title}</h3>
-              <p>{step.body}</p>
+          <li data-step={i}>
+            <div class="inline-phone">
+              <PhoneFrame screen={step.screen} maxWidth={240} />
             </div>
+            <span class="num v-tabular">{i + 1}</span>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
           </li>
         ))
       }
     </ol>
-    <HoleSketch class="sketch" />
   </div>
 </section>
 
+<script>
+  // Swap the pinned phone's screen to the step in the middle of the view.
+  for (const walk of document.querySelectorAll<HTMLElement>("[data-walk]")) {
+    const slides = walk.querySelectorAll<HTMLElement>("[data-slide]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const i = (entry.target as HTMLElement).dataset.step;
+          slides.forEach((s) => s.toggleAttribute("data-on", s.dataset.slide === i));
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px" }
+    );
+    walk.querySelectorAll("[data-step]").forEach((step) => observer.observe(step));
+  }
+</script>
+
 <style>
-  .how {
+  .walk {
+    padding-block: var(--section-gap) 0;
+  }
+  .head {
+    display: grid;
+    gap: var(--s4);
+    max-width: 40rem;
+    margin-bottom: var(--s12);
+  }
+  .body {
     display: grid;
     grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     gap: var(--s12);
-    align-items: center;
-    padding-block: var(--section-gap) 0;
   }
-  .photo {
-    position: relative;
-    margin: 0;
-    border-radius: var(--r-xxl);
-    overflow: hidden;
-    aspect-ratio: 4 / 5;
+  .stage {
+    position: sticky;
+    top: 96px;
+    align-self: start;
+    display: grid;
+    justify-items: center;
   }
-  .photo :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .stack {
+    display: grid;
+    width: min(100%, 320px);
   }
-  figcaption {
+  .slide {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+    transition:
+      opacity var(--dur-base) var(--ease-spring),
+      transform 420ms var(--ease-spring);
+  }
+  .slide[data-on] {
+    opacity: 1;
+    transform: none;
+  }
+  .stage :global(.sketch) {
     position: absolute;
-    left: var(--s3);
-    bottom: var(--s3);
-    padding: var(--s1) var(--s3);
-    border-radius: var(--r-pill);
-    background: color-mix(in srgb, var(--v-on-photo-scrim) 45%, transparent);
-    color: var(--v-on-photo);
-    font-size: var(--t-ui-meta);
+    left: -24px;
+    bottom: 8%;
+    width: 90px;
+    opacity: 0.8;
   }
   .steps {
-    position: relative;
-    display: grid;
-    gap: var(--s7);
-  }
-  ol {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
-    gap: var(--s6);
   }
-  li {
+  .steps li {
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    gap: var(--s4);
-    align-items: start;
+    gap: var(--s3);
+    align-content: center;
+    min-height: 72svh;
+    max-width: 30rem;
   }
   .num {
     display: grid;
     place-items: center;
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: var(--v-accent-soft);
     color: var(--v-accent-ink);
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 20px;
+    font-size: 18px;
   }
-  li h3 {
-    margin-bottom: var(--s1);
+  .steps h3 {
+    font-size: var(--t-h2);
   }
-  li p {
+  .steps p {
     color: var(--v-text-secondary);
+    font-size: var(--t-ui-large);
   }
-  .steps :global(.sketch) {
-    justify-self: end;
-    width: 96px;
-    margin-top: calc(-1 * var(--s5));
-    opacity: 0.85;
+  .inline-phone {
+    display: none;
   }
+
   @media (max-width: 860px) {
-    .how {
+    .head {
+      margin-bottom: var(--s7);
+    }
+    .body {
       grid-template-columns: minmax(0, 1fr);
-      gap: var(--s7);
     }
-    .photo {
-      aspect-ratio: 4 / 3;
-    }
-    .steps :global(.sketch) {
+    .stage {
       display: none;
+    }
+    .steps {
+      display: grid;
+      gap: var(--s16);
+    }
+    .steps li {
+      min-height: 0;
+    }
+    .inline-phone {
+      display: block;
+      width: min(68%, 240px);
+      margin: 0 auto var(--s5);
+    }
+    .steps h3 {
+      font-size: var(--t-h3);
     }
   }
 </style>

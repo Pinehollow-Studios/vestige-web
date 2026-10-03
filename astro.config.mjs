@@ -17,6 +17,10 @@ import sitemap from "@astrojs/sitemap";
 export default defineConfig({
   site: "https://vestige.golf",
   trailingSlash: "never",
+  // Pages build as /app.html rather than /app/index.html, so Cloudflare
+  // serves /app itself instead of redirecting to /app/ (the old site's URLs
+  // never had a trailing slash).
+  build: { format: "file" },
   adapter: cloudflare({
     // Prerender in Node, so build-time tools with native or WASM parts
     // (share-image rendering, image processing) run during the build.
@@ -26,7 +30,20 @@ export default defineConfig({
   }),
   // No logins on this site, so no sessions (and no KV store for them).
   session: false,
-  integrations: [sitemap()],
+  // Astro's blanket same-origin check on POSTs would block RFC 8058
+  // one-click unsubscribes, which mail providers POST from their own
+  // servers. /unsubscribe is protected by its signed token instead, and
+  // /api/notify checks the Origin itself.
+  security: { checkOrigin: false },
+  integrations: [
+    sitemap({
+      // Search engines get the main pages and legal pages. Left out: the
+      // course directory until its indexing switch is on
+      // (src/lib/directory/config.ts - flip both together), /beta (shared by
+      // hand only) and the 404.
+      filter: (page) => !/\/(courses|beta|404)(\/|$)/.test(new URL(page).pathname),
+    }),
+  ],
   env: {
     schema: {
       // Read at build for prerendered pages and at request time for Worker
@@ -37,6 +54,15 @@ export default defineConfig({
         values: ["production", "staging", "development"],
         default: "development",
       }),
+      // Public: the production Supabase project and its anon key (RLS-gated).
+      SUPABASE_URL: envField.string({ context: "server", access: "public", optional: true }),
+      SUPABASE_ANON_KEY: envField.string({ context: "server", access: "public", optional: true }),
+      // Secrets, set on the Worker with `npx wrangler secret put`.
+      RESEND_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      RESEND_WAITLIST_SEGMENT_ID: envField.string({ context: "server", access: "secret", optional: true }),
+      UNSUBSCRIBE_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
+      DIRECTORY_REVALIDATE_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
+      DEPLOY_HOOK_URL: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
   fonts: [

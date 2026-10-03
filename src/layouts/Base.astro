@@ -20,9 +20,12 @@ interface Props {
   description?: string;
   /** Keep this page out of search results even in production. */
   noindex?: boolean;
+  /** The share card (1200 x 630), a site path. Defaults to the main one. */
+  ogImage?: string;
 }
 
-const { title, description = site.description, noindex = false } = Astro.props;
+const { title, description = site.description, noindex = false, ogImage = "/og/default.jpg" } = Astro.props;
+const ogImageUrl = new URL(ogImage, site.url).toString();
 const pageTitle = title ? `${title} · ${site.name}` : `${site.name} - ${site.tagline}`;
 const canonical = new URL(Astro.url.pathname, site.url).toString();
 const indexable = SITE_ENV === "production" && !noindex;
@@ -47,6 +50,10 @@ const indexable = SITE_ENV === "production" && !noindex;
     <meta property="og:url" content={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_GB" />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <Font cssVariable="--font-manrope" preload />
     <slot name="head" />
   </head>

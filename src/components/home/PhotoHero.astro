@@ -8,6 +8,8 @@
 import { Picture } from "astro:assets";
 import { caption, type Photo } from "../../data/photos";
 import { progressConfig } from "../../data/progressConfig";
+import { screens } from "../../data/screens";
+import PhoneFrame from "../PhoneFrame.astro";
 
 interface Props {
   photo: Photo;
@@ -29,6 +31,7 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
   />
   <div class="scrim" aria-hidden="true"></div>
   <div class="v-container content">
+    <div class="text">
     <h1 id="hero-title">How many have you played?</h1>
     <p class="lead">
       Every golf course in Britain on one map. Mark the ones you’ve played, fill in your
@@ -52,6 +55,8 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
       />
       <button type="submit">Search</button>
     </form>
+    </div>
+    <PhoneFrame screen={screens.courseHankley} maxWidth={300} loading="eager" class="hero-phone" />
   </div>
   <p class="credit">{caption(photo)}</p>
 </section>
@@ -98,8 +103,29 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
   }
   .content {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--s12);
+    padding-block: clamp(var(--s12), 9vh, 120px) var(--s12);
+  }
+  .text {
+    display: grid;
     gap: var(--s5);
-    padding-block: clamp(var(--s12), 9vh, 120px) var(--s16);
+  }
+  /* The app beside the photo: the same course, Hankley Common, as the
+     app shows it. Desktop only; phones keep the photo and search clear. */
+  .content :global(.hero-phone) {
+    width: 280px;
+    align-self: end;
+    transform: rotate(2.5deg);
+  }
+  @media (max-width: 1023px) {
+    .content {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .content :global(.hero-phone) {
+      display: none;
+    }
   }
   h1 {
     font-size: clamp(2.75rem, 1.6rem + 5.4vw, 5.5rem);
@@ -163,7 +189,7 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
   }
   .credit {
     position: absolute;
-    right: var(--page-gutter);
+    left: var(--page-gutter);
     bottom: var(--s5);
     font-size: var(--t-ui-meta);
     color: color-mix(in srgb, var(--v-on-photo) 80%, transparent);

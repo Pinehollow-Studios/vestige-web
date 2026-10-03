@@ -1,0 +1,27 @@
+---
+/**
+ * Web fallback for a course share link, vestige.golf/course/<uuid>?n=<name>.
+ * A uuid that resolves to a course goes straight to its directory page;
+ * anything else gets the landing card, named from the ?n= hint if present.
+ */
+import LinkLanding from "../../components/LinkLanding.astro";
+import { site } from "../../config/site";
+import { cleanNameHint, slugForCourseId } from "../../lib/server/links";
+
+export const prerender = false;
+
+const slug = await slugForCourseId(Astro.params.id ?? "");
+if (slug) return Astro.redirect(`/courses/${slug}`, 308);
+
+const name = cleanNameHint(Astro.url.searchParams.get("n"));
+---
+
+<LinkLanding
+  title={name ?? "A course"}
+  description={name ? `${name} is on ${site.name}.` : `This course is on ${site.name}.`}
+  label="Course"
+  headline={name ?? "A course on Vestige"}
+  blurb={name
+    ? `${name} is one of the courses on ${site.name}. ${site.tagline}`
+    : `This course is on ${site.name}. ${site.tagline}`}
+/>

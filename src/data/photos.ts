@@ -13,7 +13,8 @@ import farnhamEvening from "../assets/photos/farnham-park-evening.jpg";
  * ~/Documents/VESTIGE/photos with the location data stripped.
  *
  * `place` is where the photo was taken, worked out from its GPS against
- * the course data. A photo is only captioned with a named course once
+ * the course data and confirmed against OpenStreetMap's course boundaries
+ * (3 Oct 2026). A photo is only captioned with a named course once
  * `confirmed` is true (docs/rebuild-plan.md: never name a course we
  * haven't verified); until then the caption falls back to `area`.
  */
@@ -33,25 +34,27 @@ export const photos = {
     alt: "Two golfers' long shadows side by side on a sunlit fairway lined with Scots pines, under a clear blue sky.",
     place: "Hankley Common",
     area: "Surrey",
-    confirmed: false,
+    confirmed: true,
   },
   teeHeather: {
     src: teeHeather,
     alt: "A golfer addressing the ball on a tee, with heather and a pine-lined fairway stretching away below in evening light.",
     place: "Hankley Common",
     area: "Surrey",
-    confirmed: false,
+    confirmed: true,
   },
   pinesSunset: {
     src: pinesSunset,
     alt: "The low sun bursting through a stand of Scots pines, throwing long shadows across a fairway.",
     place: "Hankley Common",
     area: "Surrey",
-    confirmed: false,
+    confirmed: true,
   },
   arthursSeat: {
     src: arthursSeat,
     alt: "A golfer on a fairway edged with yellow gorse, with Arthur's Seat and the Edinburgh skyline behind under a big sky.",
+    // GPS puts this one shot at Liberton, mid-way through a run of Braid
+    // Hills shots with the same golfer: probably a GPS jump. Area only.
     place: "Braid Hills",
     area: "Edinburgh",
     confirmed: false,
@@ -61,28 +64,28 @@ export const photos = {
     alt: "A golfer on a high tee above Edinburgh, a bag on the grass nearby, the city and the Forth spread out below.",
     place: "Braid Hills",
     area: "Edinburgh",
-    confirmed: false,
+    confirmed: true,
   },
   manchesterSkyline: {
     src: manchesterSkyline,
     alt: "A golfer on a green on the edge of the Pennines, fields falling away to the Manchester skyline on the horizon.",
     place: "Oldham Golf Club",
     area: "Greater Manchester",
-    confirmed: false,
+    confirmed: true,
   },
   pineRidge: {
     src: pineRidge,
     alt: "Golfers walking down a wide fairway beneath tall pines on a grey winter day.",
     place: "Pine Ridge",
     area: "Surrey",
-    confirmed: false,
+    confirmed: true,
   },
   farnhamEvening: {
     src: farnhamEvening,
     alt: "A golfer with a bag on a summer evening fairway, cloud lit gold behind the trees.",
     place: "Farnham Park",
     area: "Surrey",
-    confirmed: false,
+    confirmed: true,
   },
 } satisfies Record<string, Photo>;
 
