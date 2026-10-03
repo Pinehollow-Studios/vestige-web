@@ -2,6 +2,7 @@
 import { defineConfig, envField, fontProviders } from "astro/config";
 import cloudflare from "@astrojs/cloudflare";
 import sitemap from "@astrojs/sitemap";
+import directory from "./integrations/directory.mjs";
 
 /**
  * vestige.golf on Astro 7 + Cloudflare Workers (docs/rebuild-plan.md).
@@ -45,6 +46,8 @@ export default defineConfig({
   // /api/notify checks the Origin itself.
   security: { checkOrigin: false },
   integrations: [
+    // First: fetches the course directory before anything is built.
+    directory(),
     sitemap({
       // Search engines get the main pages and legal pages. Left out: the
       // course directory until its indexing switch is on
@@ -72,6 +75,8 @@ export default defineConfig({
       UNSUBSCRIBE_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
       DIRECTORY_REVALIDATE_SECRET: envField.string({ context: "server", access: "secret", optional: true }),
       DEPLOY_HOOK_URL: envField.string({ context: "server", access: "secret", optional: true }),
+      // The Worker's key for the web_claim_* database functions (club claims).
+      WEB_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
   fonts: [

@@ -1,0 +1,56 @@
+---
+/**
+ * The frame for the club pages (claiming, confirming, suggesting changes):
+ * the site shell, a narrow column, a kicker and a title. Never indexed, and
+ * sent with headers that keep a link's token out of any Referer.
+ */
+import Base from "../../layouts/Base.astro";
+import { PRIVATE_HEADERS } from "../../lib/server/claims";
+
+interface Props {
+  title: string;
+  kicker?: string;
+  heading: string;
+  /** Index-worthy pages (the claim page's front) may opt in later. */
+  noindex?: boolean;
+}
+const { title, kicker = "For clubs", heading, noindex = true } = Astro.props;
+for (const [k, v] of Object.entries(PRIVATE_HEADERS)) Astro.response.headers.set(k, v);
+---
+
+<Base title={title} noindex={noindex}>
+  <section class="v-container club">
+    <p class="v-kicker">{kicker}</p>
+    <h1 class="v-display">{heading}</h1>
+    <slot />
+  </section>
+</Base>
+
+<style>
+  .club {
+    max-width: calc(720px + 2 * var(--page-gutter));
+    padding-block: var(--s16) 0;
+  }
+  .club :global(.v-display) {
+    font-size: clamp(2.2rem, 1.5rem + 3vw, 3.4rem);
+    margin-top: var(--s2);
+  }
+  .club :global(.intro) {
+    margin: var(--s5) 0 0;
+    font-size: var(--t-editorial);
+    line-height: 1.6;
+    color: var(--v-text-secondary);
+  }
+  .club :global(.panel) {
+    margin-top: var(--s7);
+    padding: var(--s7);
+  }
+  .club :global(.panel h2) {
+    font-size: var(--t-h3);
+  }
+  @media (max-width: 640px) {
+    .club :global(.panel) {
+      padding: var(--s6) var(--s5);
+    }
+  }
+</style>

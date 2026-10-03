@@ -7,7 +7,7 @@
 > recommended (especially the club-insights section — "aggregated /
 > anonymised" has a high bar under UK GDPR).
 
-**Last updated:** 26 September 2026
+**Last updated:** 3 October 2026
 
 Vestige ("Vestige", "we", "us") is a golf-course collection tracker for
 Great Britain, built by Pinehollow Studios Limited. This policy explains what
@@ -201,12 +201,21 @@ children.
 
 ## This website
 
-This website asks for one piece of personal information: the email address
-you give the waiting list, held to contact you about Vestige and deleted
-once it has done its job or on request. It is stored and delivered through
-Resend, our email provider, and the site is hosted by Vercel — both acting
-only on our instructions. We also use Vercel's privacy-first analytics to
-count visits; it sets no cookies and does not identify you.
+This website asks for personal information in two places.
+
+- **The 1.0 list.** The email address you give us, held to tell you about
+  Vestige and deleted once it has done its job or on request.
+- **Claiming a course page.** If you work at a golf club and claim its page,
+  your name, your role at the club and your work email. We use them to
+  confirm that you can speak for the club, to send you the private link for
+  suggesting changes, and to act on the changes you suggest. We keep them
+  while the club holds the claim, and delete them on request or when the
+  claim ends.
+
+Emails are delivered through Resend, our email provider; claims are stored
+with Supabase, our database provider; and the site is hosted by Cloudflare.
+Each acts only on our instructions. The site sets no cookies and uses no
+analytics or advertising trackers.
 
 ## Changes to this policy
 

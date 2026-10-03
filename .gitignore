@@ -47,3 +47,6 @@ yarn-error.log*
 
 # Temporary git commit-message files
 .commit-msg*
+
+# Directory data fetched at build (integrations/directory.mjs). Never commit.
+/src/generated/

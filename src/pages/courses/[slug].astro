@@ -1,26 +1,41 @@
 ---
 /**
- * A course, /courses/<slug> (flat and permanent; docs/course-directory-plan.md §3):
- * the facts, Jack's description, where it sits, the Vestige Index where the
- * view returns it, the four nearest courses, the club's website.
+ * A course, /courses/<slug> (flat and permanent; docs/course-directory-plan.md §3,
+ * redesigned 2026-10-03 per docs/course-pages-plan.md).
+ *
+ * Everything a golfer needs is free here: the facts, the writing, where it
+ * sits on our map, its lists and its Index, the courses around it. What the
+ * app adds is doing something with it (ticking it off, your county filling
+ * in, friends who have played it), so the page's one call to action is that,
+ * written about this course. Clubs get a quiet way in at the end: claim the
+ * page, free.
+ *
+ * Deliberately absent: the course outline (it could be copied straight out of
+ * the page), play counts, anything from the Index's workings.
  */
+import { Picture } from "astro:assets";
 import Directory from "../../layouts/Directory.astro";
-import Section from "../../components/directory/Section.astro";
-import Rows from "../../components/directory/Rows.astro";
-import AppPrompt from "../../components/directory/AppPrompt.astro";
+import CountyMap from "../../components/directory/CountyMap.astro";
+import PhoneFrame from "../../components/PhoneFrame.astro";
 import { loadDirectory, summary } from "../../lib/directory/data";
 import {
   courseKind,
   excerpt,
   formatMiles,
   formatNumber,
+  haversineKm,
+  monthYear,
   nearestCourses,
+  rankLabel,
   safeHttpUrl,
+  shortName,
   styleLabel,
-  websiteHost,
 } from "../../lib/directory/format";
 import { breadcrumbList, golfCourse, graph } from "../../lib/directory/jsonLd";
 import type { DirectoryCourse } from "../../lib/directory/types";
+import { caption, photoForCourse } from "../../data/photos";
+import { screens } from "../../data/screens";
+import { site } from "../../config/site";
 
 export async function getStaticPaths() {
   const dir = await loadDirectory();
@@ -30,23 +45,64 @@ export async function getStaticPaths() {
 const { course } = Astro.props as { course: DirectoryCourse };
 const dir = await loadDirectory();
 const all = dir.courses.map(summary);
-const inCounty = all.filter((c) => c.county_slug === course.county_slug).length;
-const nearby = nearestCourses(summary(course), all, 4);
-const ordered = new Map(dir.lists.map((l) => [l.slug, l.is_ordered]));
-const memberships = [...course.lists].sort((a, b) => a.name.localeCompare(b.name, "en-GB"));
-const website = safeHttpUrl(course.website);
-const style = styleLabel(course.style);
-const description = course.description?.trim();
+const listInfo = new Map(dir.lists.map((l) => [l.slug, l]));
 
-const facts: Array<{ label: string; value: string }> = [];
+const short = shortName(course.name);
+const style = styleLabel(course.style);
+const kind = courseKind(course);
+const description = course.description?.trim();
+const website = safeHttpUrl(course.website);
+const photo = photoForCourse(course.slug);
+const countyPath = `/courses/county/${course.county_slug}`;
+const inCounty = all.filter((c) => c.county_slug === course.county_slug).length;
+
+// The Index, and where it ranks. Every course above a public score is itself
+// public (the threshold only hides the lower ones), so these ranks are true.
+const scored = all.filter((c) => c.vestige_index != null);
+const index = course.vestige_index;
+const englandRank = index != null ? rankLabel(index, scored.map((c) => c.vestige_index!)) : null;
+const countyRank =
+  index != null
+    ? rankLabel(index, scored.filter((c) => c.county_slug === course.county_slug).map((c) => c.vestige_index!))
+    : null;
+
+const memberships = [...course.lists]
+  .map((m) => ({ ...m, list: listInfo.get(m.slug) }))
+  .sort((a, b) => (b.list?.course_count ?? 0) - (a.list?.course_count ?? 0) || a.name.localeCompare(b.name, "en-GB"));
+
+// Around it: the four nearest, then a few more of the same style a short drive away.
+const nearest = nearestCourses(summary(course), all, 4);
+const taken = new Set([course.slug, ...nearest.map((n) => n.course.slug)]);
+const alike =
+  course.style && course.lat != null && course.lng != null
+    ? all
+        .filter((c) => c.style === course.style && !taken.has(c.slug) && c.lat != null && c.lng != null)
+        .map((c) => ({ course: c, km: haversineKm({ lat: course.lat!, lng: course.lng! }, { lat: c.lat!, lng: c.lng! }) }))
+        .filter((x) => x.km <= 64)
+        .sort((a, b) => (b.course.vestige_index ?? 0) - (a.course.vestige_index ?? 0) || a.km - b.km)
+        .slice(0, 4)
+    : [];
+
+const facts: Array<{ label: string; value: string; wide?: boolean }> = [];
+if (course.hole_count != null) facts.push({ label: "Holes", value: String(course.hole_count) });
 if (course.par != null) facts.push({ label: "Par", value: String(course.par) });
 if (course.yards != null) facts.push({ label: "Yards", value: formatNumber(course.yards) });
-if (course.hole_count != null) facts.push({ label: "Holes", value: String(course.hole_count) });
-if (style) facts.push({ label: "Style", value: style });
+if (style) facts.push({ label: "Style", value: style, wide: true });
 if (course.established != null) facts.push({ label: "Founded", value: String(course.established) });
 
+const chips: Array<{ href: string; strong: string; text: string }> = [];
+for (const m of memberships) {
+  if (m.list?.is_ordered !== false) chips.push({ href: `/courses/list/${m.slug}`, strong: `No. ${m.position}`, text: m.name });
+}
+
+const hasPlace = course.lat != null && course.lng != null;
+const appleMaps = hasPlace
+  ? `https://maps.apple.com/?q=${encodeURIComponent(course.name)}&ll=${course.lat},${course.lng}`
+  : null;
+const correction = `mailto:${site.email.hello}?subject=${encodeURIComponent(`Correction: ${course.name}`)}`;
+const talk = `mailto:${site.email.hello}?subject=${encodeURIComponent(`Working with Vestige: ${course.name}`)}`;
+
 const fallback = `${course.name} is a ${style?.toLowerCase() ?? "golf"} course in ${course.county_name}.`;
-const countyPath = `/courses/county/${course.county_slug}`;
 const structured = graph([
   golfCourse(course, website),
   breadcrumbList([
@@ -58,6 +114,7 @@ const structured = graph([
 ---
 
 <Directory
+  wide
   title={`${course.name}, ${course.county_name}`}
   description={excerpt(description || fallback)}
   crumbs={[
@@ -67,14 +124,81 @@ const structured = graph([
   ]}
   structured={structured}
 >
-  <h1 class="dx-title">{course.name}</h1>
-  <p class="dx-sub">{courseKind(course)} in <a href={countyPath}>{course.county_name}</a></p>
+  <header class="top">
+    <div class="intro">
+      <p class="v-kicker">{style ? `${style} in ${course.county_name}` : course.county_name}</p>
+      <h1 class="v-display name">{course.name}</h1>
+      {
+        course.claimed && (
+          <p class="claimed">
+            <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true">
+              <circle cx="10" cy="10" r="10" />
+              <path d="m5.8 10.3 2.7 2.7 5.7-6" />
+            </svg>
+            Claimed by the club
+          </p>
+        )
+      }
+      <p class="sub">
+        {kind} in <a href={countyPath}>{course.county_name}</a>{course.established != null && <>, founded in {course.established}</>}.
+      </p>
+      {
+        (chips.length > 0 || index != null) && (
+          <ul class="chips" aria-label="Rankings">
+            {index != null && (
+              <li>
+                <span class="chip chip--index">
+                  <strong class="v-tabular">{index}</strong> Vestige Index
+                </span>
+              </li>
+            )}
+            {chips.map((c) => (
+              <li>
+                <a class="chip" href={c.href}>
+                  <strong class="v-tabular">{c.strong}</strong> {c.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+      <div class="actions">
+        {
+          website && (
+            <a class="v-button v-button--secondary" href={website} rel="noopener">
+              Club website <span aria-hidden="true">↗</span>
+            </a>
+          )
+        }
+        {
+          appleMaps && (
+            <a class="v-button v-button--tertiary" href={appleMaps} rel="noopener">
+              Directions
+            </a>
+          )
+        }
+      </div>
+    </div>
+    {
+      hasPlace && (
+        <div class="visual">
+          <CountyMap
+            name={course.name}
+            county={course.county_name}
+            lat={course.lat!}
+            lng={course.lng!}
+            nearby={nearest.map((n) => ({ name: n.course.name, lat: n.course.lat!, lng: n.course.lng! }))}
+          />
+        </div>
+      )
+    }
+  </header>
 
   {
     facts.length > 0 && (
-      <dl class="facts">
+      <dl class="facts" style={`--n: ${facts.length}`}>
         {facts.map((f) => (
-          <div>
+          <div class:list={{ wide: f.wide }}>
             <dt>{f.label}</dt>
             <dd class="v-tabular">{f.value}</dd>
           </div>
@@ -83,79 +207,270 @@ const structured = graph([
     )
   }
 
-  {description && description.split(/\n\s*\n/).map((para) => <p class="dx-lede">{para.trim()}</p>)}
-
   {
-    course.vestige_index != null && (
-      <div class="index">
-        <span class="v-hero-numeral">{course.vestige_index}</span>
-        <span>
-          <strong>Vestige Index</strong>
-          <span class="v-meta">out of 100</span>
-        </span>
-      </div>
-    )
-  }
-
-  <Section title="Where it sits">
-    <Rows
-      rows={[
-        {
-          href: countyPath,
-          name:
-            inCounty > 1
-              ? `1 of ${formatNumber(inCounty)} courses in ${course.county_name}`
-              : `The only course in ${course.county_name}`,
-        },
-        ...memberships.map((m) => ({
-          href: `/courses/list/${m.slug}`,
-          name: m.name,
-          end: ordered.get(m.slug) !== false ? `No. ${m.position}` : null,
-        })),
-      ]}
-    />
-  </Section>
-
-  {
-    nearby.length > 0 && (
-      <Section title="Nearby" note="The nearest courses, as the crow flies.">
-        <Rows
-          rows={nearby.map(({ course: near, km }) => ({
-            href: `/courses/${near.slug}`,
-            name: near.name,
-            meta: [styleLabel(near.style), near.county_slug !== course.county_slug ? near.county_name : null]
-              .filter(Boolean)
-              .join(" · "),
-            end: formatMiles(km),
-          }))}
+    photo && (
+      <figure class="photo">
+        <Picture
+          src={photo.src}
+          alt={photo.alt}
+          formats={["avif", "webp"]}
+          widths={[640, 1120, 1680, 2240]}
+          sizes="(min-width: 1180px) 1120px, 100vw"
+          loading="lazy"
         />
-      </Section>
+        <figcaption>{caption(photo)}</figcaption>
+      </figure>
     )
   }
 
-  {
-    website && (
-      <Section title="The club">
-        <Rows rows={[{ href: website, name: "Club website", meta: websiteHost(website) ?? website, external: true }]} />
-      </Section>
-    )
-  }
+  <div class="body">
+    <section class="about" aria-labelledby="about-title">
+      <h2 id="about-title" class="v-visually-hidden">About {course.name}</h2>
+      {(description ? description.split(/\n\s*\n/) : [fallback]).map((para) => <p class="lede">{para.trim()}</p>)}
+      <p class="v-meta stamp">
+        Updated {monthYear(course.updated_at)}. Something wrong? <a href={correction}>Tell us</a>.
+      </p>
+    </section>
 
-  <AppPrompt />
+    {
+      index != null && (
+        <section class="index v-card" aria-labelledby="index-title">
+          <div class="score">
+            <span class="v-hero-numeral">{index}</span>
+            <span class="of">/ 100</span>
+          </div>
+          <div class="index-copy">
+            <h2 id="index-title">Vestige Index</h2>
+            <p class="ranks">
+              {englandRank} in England · {countyRank} in {course.county_name}
+            </p>
+            <p class="v-meta">
+              Our editorial score out of 100. We publish it for the courses that score 80 or more.
+            </p>
+          </div>
+        </section>
+      )
+    }
+
+    {
+      memberships.length > 0 && (
+        <section class="lists" aria-labelledby="lists-title">
+          <h2 id="lists-title" class="h">On these lists</h2>
+          <ul class="cards">
+            {memberships.map((m) => (
+              <li>
+                <a class="list-card v-card" href={`/courses/list/${m.slug}`}>
+                  {m.list?.is_ordered !== false ? (
+                    <span class="pos v-tabular">
+                      No. {m.position}
+                      {m.list && <span class="of"> of {m.list.course_count}</span>}
+                    </span>
+                  ) : (
+                    <span class="pos">On the list</span>
+                  )}
+                  <span class="list-name">{m.name}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      nearest.length > 0 && (
+        <section class="around" aria-labelledby="near-title">
+          <h2 id="near-title" class="h">Nearest courses</h2>
+          <p class="v-meta note">As the crow flies.</p>
+          <ul class="cards">
+            {nearest.map(({ course: c, km }) => (
+              <li>
+                <a class="course-card v-card" href={`/courses/${c.slug}`}>
+                  <span class="cc-name">{c.name}</span>
+                  <span class="cc-meta">
+                    {[styleLabel(c.style), c.county_slug !== course.county_slug ? c.county_name : null].filter(Boolean).join(" · ")}
+                  </span>
+                  <span class="cc-end v-tabular">{formatMiles(km)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    {
+      alike.length > 0 && (
+        <section class="around" aria-labelledby="alike-title">
+          <h2 id="alike-title" class="h">More {style?.toLowerCase()} nearby</h2>
+          <p class="v-meta note">Within 40 miles, the highest rated first.</p>
+          <ul class="cards">
+            {alike.map(({ course: c, km }) => (
+              <li>
+                <a class="course-card v-card" href={`/courses/${c.slug}`}>
+                  <span class="cc-name">{c.name}</span>
+                  <span class="cc-meta">
+                    {[c.vestige_index != null ? `Index ${c.vestige_index}` : null, c.county_slug !== course.county_slug ? c.county_name : null]
+                      .filter(Boolean)
+                      .join(" · ") || c.county_name}
+                  </span>
+                  <span class="cc-end v-tabular">{formatMiles(km)}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <div class="side">
+      <aside class="app v-card" aria-labelledby="app-title">
+        <PhoneFrame screen={screens.homeMap} maxWidth={170} class="app-phone" />
+        <p class="v-kicker">In the app</p>
+        <h2 id="app-title">Played {short}? Put it on your map.</h2>
+        <p class="app-copy">
+          Tick it off in Vestige and watch {course.county_name} fill in. There {inCounty === 1 ? "is" : "are"}
+          {" "}{formatNumber(inCounty)} {inCounty === 1 ? "course" : "courses"} in {course.county_name}. How many have you got?
+        </p>
+        <a class="v-button v-button--primary" href="/?from=directory#notify">Tell me when it’s out</a>
+        <p class="v-meta">Free on iPhone. Version 1.0 lands in January. <a href="/app">See the app</a></p>
+      </aside>
+
+      <aside class="claim" aria-labelledby="claim-title">
+        {
+          course.claimed ? (
+            <>
+              <h2 id="claim-title">Looked after by the club</h2>
+              <p>
+                {short} has claimed this page. Spot something out of date? <a href={correction}>Tell us</a>.
+              </p>
+            </>
+          ) : (
+            <>
+              <p class="v-kicker">For the club</p>
+              <h2 id="claim-title">Work at {short}? Claim this page, free.</h2>
+              <ul class="perks">
+                <li>A “Claimed by the club” mark</li>
+                <li>Suggest changes to your description and details</li>
+                <li>A Vestige badge for your own website</li>
+              </ul>
+              <a class="v-button v-button--secondary" href={`/clubs/claim?course=${course.slug}`}>
+                Claim this page
+              </a>
+              <p class="v-meta">
+                Other ways to work with us? <a href={talk}>Talk to us</a>.
+              </p>
+            </>
+          )
+        }
+      </aside>
+    </div>
+  </div>
 </Directory>
 
 <style>
-  .facts {
+  /* ---- Top: the name, the chips, the map ------------------------------ */
+  .top {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-    gap: var(--s3);
-    margin: var(--s7) 0 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.95fr);
+    gap: var(--s12);
+    align-items: center;
   }
-  .facts div {
-    padding: var(--s4);
+  .intro {
+    display: grid;
+    justify-items: start;
+    gap: var(--s4);
+  }
+  .name {
+    font-size: clamp(2.4rem, 1.6rem + 3.4vw, 4rem);
+  }
+  .claimed {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+    margin: 0;
+    padding: var(--s1) var(--s3) var(--s1) var(--s2);
+    border-radius: var(--r-pill);
+    background: var(--v-accent-soft);
+    color: var(--v-accent-ink);
+    font-size: var(--t-ui-meta);
+    font-weight: 600;
+  }
+  .claimed circle {
+    fill: var(--v-accent-ink);
+  }
+  .claimed path {
+    fill: none;
+    stroke: var(--v-surface-raised);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .sub {
+    margin: 0;
+    font-size: var(--t-ui-large);
+    color: var(--v-text-secondary);
+  }
+  .sub a {
+    color: inherit;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+    margin: var(--s1) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--s2);
+    padding: var(--s2) var(--s4);
+    border-radius: var(--r-pill);
     background: var(--v-surface-raised);
     box-shadow: var(--card-edge);
-    border-radius: var(--r-lg);
+    color: var(--v-text-primary);
+    font-size: var(--t-ui-body);
+    text-decoration: none;
+    transition: box-shadow var(--dur-fast) ease;
+  }
+  a.chip:hover {
+    box-shadow: inset 0 0 0 1px var(--v-accent-ink);
+  }
+  .chip strong {
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+  .chip--index {
+    background: var(--v-accent-soft);
+    box-shadow: none;
+  }
+  .chip--index strong {
+    color: var(--v-accent-ink);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+    margin-top: var(--s2);
+  }
+
+  /* ---- Facts: one strip, like the app's figures ------------------------- */
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    margin: var(--s12) 0 0;
+    padding: var(--s5) 0;
+    background: var(--v-surface-raised);
+    box-shadow: var(--card-edge);
+    border-radius: var(--r-xl);
+  }
+  .facts div {
+    padding: 0 var(--s5);
+  }
+  .facts div + div {
+    border-left: 1px solid var(--v-separator);
   }
   dt {
     font-size: var(--t-ui-meta);
@@ -165,18 +480,305 @@ const structured = graph([
     margin: var(--s1) 0 0;
     font-family: var(--font-display);
     font-weight: 600;
+    font-size: var(--t-h2);
+    letter-spacing: -0.01em;
+  }
+
+  .photo {
+    margin: var(--s7) 0 0;
+    position: relative;
+    border-radius: var(--r-xxl);
+    overflow: hidden;
+  }
+  .photo :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 7;
+    object-fit: cover;
+  }
+  .photo figcaption {
+    position: absolute;
+    left: var(--s5);
+    bottom: var(--s4);
+    padding: var(--s1) var(--s3);
+    border-radius: var(--r-pill);
+    background: color-mix(in srgb, var(--v-on-photo-scrim) 55%, transparent);
+    color: var(--v-on-photo);
+    font-size: var(--t-ui-meta);
+  }
+
+  /* ---- Body: reading column + a sticky side ----------------------------- */
+  .body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    column-gap: var(--s16);
+    row-gap: var(--s12);
+    margin-top: var(--s12);
+    align-items: start;
+  }
+  .body > section {
+    grid-column: 1;
+  }
+  .side {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+    position: sticky;
+    top: calc(var(--s16) + var(--s4));
+    display: grid;
+    gap: var(--s5);
+  }
+  .h {
     font-size: var(--t-h3);
   }
+  .note {
+    margin-top: var(--s1);
+  }
+
+  .lede {
+    margin: 0;
+    font-size: var(--t-editorial);
+    line-height: 1.6;
+    max-width: 40rem;
+  }
+  .lede + .lede {
+    margin-top: var(--s4);
+  }
+  .stamp {
+    margin-top: var(--s5);
+  }
+  .stamp a {
+    color: inherit;
+  }
+
   .index {
     display: flex;
     align-items: center;
-    gap: var(--s4);
-    margin-top: var(--s7);
+    gap: var(--s7);
+    padding: var(--s7);
   }
-  .index .v-hero-numeral {
+  .score {
+    display: flex;
+    flex: none;
+    align-items: baseline;
+    gap: var(--s1);
+    white-space: nowrap;
+  }
+  .score .v-hero-numeral {
     color: var(--v-accent-ink);
   }
-  .index > span:last-child {
+  .score .of {
+    color: var(--v-text-tertiary);
+    font-family: var(--font-display);
+    font-weight: 600;
+  }
+  .index-copy {
     display: grid;
+    gap: var(--s1);
+  }
+  .index-copy h2 {
+    font-size: var(--t-h3);
+  }
+  .ranks {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s3);
+    margin: var(--s4) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .list-card,
+  .course-card {
+    display: grid;
+    height: 100%;
+    padding: var(--s5);
+    color: var(--v-text-primary);
+    text-decoration: none;
+    transition: box-shadow var(--dur-fast) ease, transform var(--dur-fast) ease;
+  }
+  .list-card:hover,
+  .course-card:hover {
+    box-shadow: inset 0 0 0 1px var(--v-accent-ink);
+  }
+  .list-card .pos {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t-h2);
+    color: var(--v-accent-ink);
+  }
+  .list-card .pos .of {
+    font-size: var(--t-ui-body);
+    color: var(--v-text-tertiary);
+  }
+  .list-name {
+    margin-top: var(--s1);
+    font-weight: 600;
+  }
+  .course-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--s3);
+  }
+  .cc-name {
+    font-weight: 600;
+  }
+  .cc-meta {
+    grid-row: 2;
+    font-size: var(--t-ui-meta);
+    color: var(--v-text-secondary);
+  }
+  .cc-end {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: center;
+    font-size: var(--t-ui-meta);
+    color: var(--v-text-secondary);
+  }
+
+  /* ---- The app, and the club ------------------------------------------- */
+  .app {
+    display: grid;
+    justify-items: start;
+    gap: var(--s3);
+    padding: var(--s6);
+    overflow: hidden;
+  }
+  .app :global(.app-phone) {
+    justify-self: center;
+    width: 118px;
+    margin: var(--s1) 0 var(--s3);
+  }
+  .app h2 {
+    font-size: var(--t-h3);
+  }
+  .app-copy {
+    margin: 0;
+    color: var(--v-text-secondary);
+  }
+  .app .v-button {
+    margin-top: var(--s2);
+  }
+  .app .v-meta a,
+  .claim .v-meta a,
+  .claim p a {
+    color: inherit;
+  }
+  .claim {
+    display: grid;
+    justify-items: start;
+    gap: var(--s3);
+    padding: var(--s6);
+    border-radius: var(--r-xl);
+    border: 1px dashed var(--v-separator-strong);
+  }
+  .claim h2 {
+    font-size: var(--t-h3);
+  }
+  .claim p {
+    margin: 0;
+    color: var(--v-text-secondary);
+  }
+  .perks {
+    display: grid;
+    gap: var(--s2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--v-text-secondary);
+  }
+  .perks li {
+    position: relative;
+    padding-left: var(--s6);
+  }
+  .perks li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.45em;
+    width: 10px;
+    height: 6px;
+    border-left: 2px solid var(--v-accent-ink);
+    border-bottom: 2px solid var(--v-accent-ink);
+    transform: rotate(-45deg);
+  }
+
+  /* ---- Narrow screens: one column, the app card after the Index -------- */
+  @media (max-width: 960px) {
+    .top {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s7);
+    }
+    .body {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--s12);
+    }
+    .side {
+      display: contents;
+    }
+    .about { order: 1; }
+    .index { order: 2; }
+    .app { order: 3; }
+    .lists { order: 4; }
+    .around { order: 5; }
+    .claim { order: 6; }
+    .app {
+      grid-template-columns: minmax(0, 1fr) 120px;
+      column-gap: var(--s5);
+      align-items: start;
+    }
+    .app > :not(:global(.app-phone)) {
+      grid-column: 1;
+    }
+    .app :global(.app-phone) {
+      grid-column: 2;
+      grid-row: 1 / span 5;
+      width: 120px;
+      margin: 0;
+      align-self: center;
+    }
+  }
+  @media (max-width: 640px) {
+    .facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      row-gap: var(--s5);
+    }
+    .facts div:nth-child(3n + 1) {
+      border-left: 0;
+    }
+    .facts .wide {
+      grid-column: span 2;
+    }
+    .facts .wide + div {
+      border-left: 1px solid var(--v-separator);
+    }
+    dd {
+      font-size: var(--t-h3);
+    }
+    .cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .index {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--s3);
+      padding: var(--s6);
+    }
+    .app {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .app > :not(:global(.app-phone)) {
+      grid-column: 1;
+    }
+    .app :global(.app-phone) {
+      grid-column: 1;
+      grid-row: auto;
+      justify-self: center;
+      width: 112px;
+      margin: 0 0 var(--s3);
+    }
   }
 </style>

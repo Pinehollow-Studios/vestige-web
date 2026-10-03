@@ -16,6 +16,12 @@
   "routes": [{ "pattern": "vestige.golf", "custom_domain": true }],
   "workers_dev": false,
   "preview_urls": false,
+  // Per-IP limits for the Worker routes (Workers Rate Limiting, free).
+  // Bindings don't inherit into env.staging, so they are repeated there.
+  "ratelimits": [
+    { "name": "SEARCH_LIMITER", "namespace_id": "1001", "simple": { "limit": 40, "period": 60 } },
+    { "name": "CLAIM_LIMITER", "namespace_id": "1002", "simple": { "limit": 6, "period": 60 } }
+  ],
   "vars": {
     "SITE_ENV": "production",
     "SUPABASE_URL": "https://ujbnupjrbroskzwaeulj.supabase.co",
@@ -27,6 +33,10 @@
       // the bunker). Never indexed: SITE_ENV is not "production".
       "name": "vestige-web-staging",
       "workers_dev": true,
+      "ratelimits": [
+        { "name": "SEARCH_LIMITER", "namespace_id": "1003", "simple": { "limit": 40, "period": 60 } },
+        { "name": "CLAIM_LIMITER", "namespace_id": "1004", "simple": { "limit": 6, "period": 60 } }
+      ],
       "vars": {
         "SITE_ENV": "staging",
         "SUPABASE_URL": "https://ujbnupjrbroskzwaeulj.supabase.co",

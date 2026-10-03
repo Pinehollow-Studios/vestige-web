@@ -1,0 +1,135 @@
+---
+/**
+ * /clubs/claim/confirm?t=<token> - the link sent to a club address.
+ *
+ * Opening it changes nothing (mail scanners open links); the button posts
+ * back here and that confirms the claim (web_claim_confirm), then sends the
+ * club its private link and badge.
+ */
+import ClubShell from "../../../components/clubs/ClubShell.astro";
+import { claimRpc, cleanToken, newToken, sha256, type ClaimReply } from "../../../lib/server/claims";
+import { afterVerified, sameOrigin } from "../../../lib/server/claim-actions";
+import { badgeSnippet } from "../../../lib/server/claim-emails";
+
+export const prerender = false;
+
+let token = cleanToken(Astro.url.searchParams.get("t"));
+let done: ClaimReply | null = null;
+let manageToken: string | null = null;
+let problem: string | null = null;
+
+if (Astro.request.method === "POST") {
+  if (!sameOrigin(Astro.request, Astro.url)) return new Response("Forbidden.", { status: 403 });
+  const form = await Astro.request.formData().catch(() => null);
+  token = cleanToken(form?.get("t"));
+  if (token) {
+    manageToken = newToken();
+    done = await claimRpc("web_claim_confirm", {
+      p_verify_sha256: await sha256(token),
+      p_manage_sha256: await sha256(manageToken),
+    });
+    if (done.ok) {
+      await afterVerified({
+        origin: Astro.url.origin,
+        email: done.email!,
+        name: done.claimant_name!,
+        course: done.course_name!,
+        slug: done.course_slug!,
+        manageToken,
+      });
+    } else {
+      problem = done.reason ?? "error";
+    }
+  }
+}
+
+const peek = !done && token ? await claimRpc("web_claim_peek", { p_kind: "verify", p_sha256: await sha256(token) }) : null;
+if (!token) problem = "unknown";
+else if (peek && !peek.ok) problem = peek.reason === "error" ? "error" : "unknown";
+else if (peek?.expired) problem = "expired";
+else if (peek && peek.status !== "awaiting_email") problem = peek.status === "verified" ? "done" : "closed";
+
+const PROBLEMS: Record<string, string> = {
+  unknown: "This link doesn’t match a claim. It may have been used already, or copied only in part.",
+  expired: "This link has run out (they last three days). Claim the page again and we’ll send a fresh one.",
+  done: "This claim is already confirmed. Your private link is in the email we sent when it went through.",
+  closed: "This claim has been closed. If that seems wrong, reply to any of our emails.",
+  already_claimed: "Someone has claimed this page in the meantime, so we’ll check with the club and be in touch.",
+  error: "Something went wrong on our side. Try the button again in a minute.",
+};
+const manageLink = manageToken ? `/clubs/manage?t=${manageToken}` : null;
+---
+
+<ClubShell
+  title="Confirm your claim"
+  heading={done?.ok ? `${done.course_name} is yours.` : peek?.ok && !problem ? `Claim ${peek.course_name}?` : "Claim your page"}
+>
+  {
+    done?.ok ? (
+      <>
+        <p class="intro">
+          Thanks, {done.claimant_name}. The “Claimed by the club” mark goes on {done.course_name}’s page with our
+          next update, usually within a day or two. We’ve emailed you all of this too.
+        </p>
+        <div class="panel v-card step">
+          <h2>Suggest a change</h2>
+          <p>Your private link, for whenever something on the page needs updating. Keep it to yourself: it’s the key to your page.</p>
+          <a class="v-button v-button--primary" href={manageLink}>Suggest a change</a>
+        </div>
+        <div class="panel v-card step">
+          <h2>Your badge</h2>
+          <p>Put it on your website and it takes golfers straight to your page.</p>
+          <div class="badges">
+            <img src="/badges/collect-us-on-vestige.png" width="192" height="68" alt="Collect us on Vestige" />
+            <img src="/badges/collect-us-on-vestige-dark.png" width="192" height="68" alt="Collect us on Vestige, for dark backgrounds" />
+          </div>
+          <pre class="snippet">{badgeSnippet(done.course_slug!, done.course_name!)}</pre>
+          <p class="v-meta">On a dark website, swap the file for collect-us-on-vestige-dark.png.</p>
+        </div>
+      </>
+    ) : problem ? (
+      <div class="panel v-card step">
+        <p class="v-alert" role="alert">{PROBLEMS[problem] ?? PROBLEMS.error}</p>
+        <a class="v-button v-button--secondary" href="/clubs/claim">Claim a page</a>
+      </div>
+    ) : (
+      <form class="panel v-card step" method="post">
+        <p>
+          You’re claiming <strong>{peek!.course_name}</strong> as {peek!.claimant_name} ({peek!.email}).
+        </p>
+        <input type="hidden" name="t" value={token} />
+        <button class="v-button v-button--primary" type="submit">Confirm the claim</button>
+      </form>
+    )
+  }
+</ClubShell>
+
+<style>
+  .step {
+    display: grid;
+    justify-items: start;
+    gap: var(--s4);
+  }
+  .step p {
+    margin: 0;
+    color: var(--v-text-secondary);
+  }
+  .step .v-alert {
+    color: var(--v-alert);
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+  }
+  .snippet {
+    margin: 0;
+    width: 100%;
+    padding: var(--s4);
+    border-radius: var(--r-md);
+    background: var(--v-surface);
+    font-size: 0.8125rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+</style>

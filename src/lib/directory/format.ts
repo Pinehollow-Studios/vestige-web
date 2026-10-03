@@ -169,3 +169,33 @@ export function safeHttpUrl(url: string | null): string | null {
 export function isSlug(s: string): boolean {
   return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(s) && s.length <= 120;
 }
+
+/** 1 -> "1st", 12 -> "12th", 22 -> "22nd". */
+export function ordinal(n: number): string {
+  const tens = n % 100;
+  if (tens >= 11 && tens <= 13) return `${n}th`;
+  return `${n}${["th", "st", "nd", "rd"][n % 10] ?? "th"}`;
+}
+
+/**
+ * Where a score ranks among others: "12th", or "Joint 12th" when it shares
+ * the place. Higher is better; `others` includes the score itself.
+ */
+export function rankLabel(score: number, others: ReadonlyArray<number>): string {
+  const above = others.filter((v) => v > score).length;
+  const level = others.filter((v) => v === score).length;
+  return `${level > 1 ? "Joint " : ""}${ordinal(above + 1)}`;
+}
+
+/** The name golfers say: "Hankley Common Golf Club" -> "Hankley Common". */
+export function shortName(name: string): string {
+  const short = name
+    .replace(/\s+(golf\s+(club|course|centre|center|links|resort|academy)|golf|gc)(\s*&.*)?$/i, "")
+    .trim();
+  return short.length >= 3 ? short : name;
+}
+
+/** An ISO timestamp as "September 2026". */
+export function monthYear(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: "Europe/London" });
+}

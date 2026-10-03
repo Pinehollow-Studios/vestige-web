@@ -1,0 +1,266 @@
+---
+/**
+ * /clubs/claim - a club claims its course page, free (docs/course-pages-plan.md §4).
+ *
+ *   ?q=<words>        find the course (server-rendered results, no JavaScript needed)
+ *   ?course=<slug>    the form, for that course
+ *   ?sent=email|review&course=<slug>   what happens next
+ *   ?error=<code>&course=<slug>        the form again, with what went wrong
+ *
+ * The form posts to /api/claim. Rendered in the Worker so the course comes
+ * from the Worker's private index rather than a list shipped to the browser.
+ */
+import ClubShell from "../../components/clubs/ClubShell.astro";
+import { CLAIM_ROLES } from "../../lib/server/claims";
+import { findCourse, searchCourses } from "../../lib/server/course-index";
+import { site } from "../../config/site";
+
+export const prerender = false;
+
+const params = Astro.url.searchParams;
+const course = findCourse(params.get("course"));
+const sent = params.get("sent");
+const error = params.get("error");
+const q = (params.get("q") ?? "").trim().slice(0, 80);
+const found = !course && q ? searchCourses(q, 8) : null;
+
+const ERRORS: Record<string, string> = {
+  missing: "Fill in your name, your role and your email, and tick the box.",
+  email: "That doesn’t look like an email address.",
+  too_many: "That address has made several claims today. Try again tomorrow, or email us.",
+  busy: "Too many tries in a minute. Give it a moment and send it again.",
+  error: "Something went wrong on our side. Try again in a minute, or email us.",
+};
+const talk = `mailto:${site.email.hello}?subject=${encodeURIComponent("Working with Vestige")}`;
+---
+
+<ClubShell
+  title={course ? `Claim ${course.name}` : "Claim your course page"}
+  heading={sent && course ? "Nearly there." : course ? `Claim ${course.name}.` : "Claim your course page, free."}
+>
+  {
+    sent && course ? (
+      <div class="panel v-card done">
+        {sent === "email" ? (
+          <>
+            <h2>Check your inbox.</h2>
+            <p>
+              We’ve sent a link to your club address. Click it within three days and {course.name}’s page is
+              yours. Nothing there? Check your junk folder.
+            </p>
+          </>
+        ) : (
+          <>
+            <h2>We’ve got it.</h2>
+            <p>
+              We’ll confirm with the club and email you, usually within a couple of working days. If you have an
+              address at the club, <a href={`/clubs/claim?course=${course.slug}`}>claiming with that</a> is instant.
+            </p>
+          </>
+        )}
+        <a class="v-button v-button--secondary" href={`/courses/${course.slug}`}>
+          Back to {course.name}
+        </a>
+      </div>
+    ) : course ? (
+      <>
+        <p class="intro">
+          Use your address at the club (secretary@yourclub.co.uk, say) and it’s instant. Anything else, we check
+          with the club first.
+        </p>
+        <form class="panel v-card v-form" method="post" action="/api/claim">
+          {error && (
+            <p class="v-alert" role="alert">
+              {ERRORS[error] ?? ERRORS.error}
+            </p>
+          )}
+          <div class="course">
+            <span>
+              <strong>{course.name}</strong>
+              <span class="v-meta">{course.county}</span>
+            </span>
+            <a href="/clubs/claim">Change</a>
+          </div>
+          <input type="hidden" name="course" value={course.slug} />
+          <div class="v-field">
+            <label for="c-name">Your name</label>
+            <input class="v-input" id="c-name" name="name" autocomplete="name" required maxlength="120" />
+          </div>
+          <div class="v-field">
+            <label for="c-role">Your role at the club</label>
+            <select class="v-select" id="c-role" name="role" required>
+              <option value="" selected disabled>Choose one</option>
+              {CLAIM_ROLES.map((r) => <option>{r}</option>)}
+            </select>
+          </div>
+          <div class="v-field">
+            <label for="c-email">Work email</label>
+            <input
+              class="v-input"
+              id="c-email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              required
+              maxlength="254"
+            />
+            <p class="v-hint">We’ll only use it for this page. Never for marketing, never shared.</p>
+          </div>
+          <label class="v-check">
+            <input type="checkbox" name="speaks" value="yes" required />
+            <span>I work at or for {course.name} and can speak for it.</span>
+          </label>
+          <div class="v-honeypot" aria-hidden="true">
+            <label for="c-website">Leave this empty</label>
+            <input id="c-website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+          <button class="v-button v-button--primary" type="submit">Claim this page</button>
+          <p class="v-meta">
+            How we handle your details: <a href="/privacy">privacy policy</a>.
+          </p>
+        </form>
+      </>
+    ) : (
+      <>
+        <p class="intro">
+          Every golf course in England has a page on Vestige. Claim yours and it’s free: the club’s mark on the
+          page, a say in what it says, and a badge for your website.
+        </p>
+        <ul class="perks">
+          <li>
+            <strong>A “Claimed by the club” mark</strong>
+            <span>So golfers know the page is looked after.</span>
+          </li>
+          <li>
+            <strong>Suggest changes</strong>
+            <span>Your description, website and details. Jack, our editor, reads every one.</span>
+          </li>
+          <li>
+            <strong>A badge for your website</strong>
+            <span>“Collect us on Vestige”, linking golfers straight to your page.</span>
+          </li>
+        </ul>
+        <form class="panel v-card v-form" method="get" action="/clubs/claim" role="search">
+          <div class="v-field">
+            <label for="c-q">Find your course</label>
+            <input class="v-input" id="c-q" name="q" value={q} placeholder="Course or club name" required minlength="2" />
+          </div>
+          <button class="v-button v-button--secondary" type="submit">Search</button>
+          {found && (
+            found.results.length === 0 ? (
+              <p class="v-hint">No course matches “{q}”. Try fewer words, or email us.</p>
+            ) : (
+              <ul class="results">
+                {found.results.map((r) => (
+                  <li>
+                    <a href={`/clubs/claim?course=${r.slug}`}>
+                      <span class="name">{r.name}</span>
+                      <span class="v-meta">{r.county}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )
+          )}
+        </form>
+        <p class="v-meta more">
+          Looking for other ways to work with us? <a href={talk}>Talk to us</a>.
+        </p>
+      </>
+    )
+  }
+</ClubShell>
+
+<style>
+  .done {
+    display: grid;
+    justify-items: start;
+    gap: var(--s4);
+  }
+  .done p {
+    margin: 0;
+    color: var(--v-text-secondary);
+  }
+  .done a:not(.v-button) {
+    color: inherit;
+  }
+  .course {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--s4);
+    padding: var(--s4) var(--s5);
+    border-radius: var(--r-lg);
+    background: var(--v-accent-soft);
+  }
+  .course > span {
+    display: grid;
+  }
+  .course a {
+    color: var(--v-accent-ink);
+    font-weight: 600;
+    font-size: var(--t-ui-body);
+  }
+  .v-form .v-button {
+    justify-self: start;
+  }
+  .v-form .v-meta a {
+    color: inherit;
+  }
+  .perks {
+    display: grid;
+    gap: var(--s4);
+    margin: var(--s7) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .perks li {
+    display: grid;
+    gap: var(--s1);
+    padding-left: var(--s7);
+    position: relative;
+  }
+  .perks li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.4em;
+    width: 11px;
+    height: 6px;
+    border-left: 2px solid var(--v-accent-ink);
+    border-bottom: 2px solid var(--v-accent-ink);
+    transform: rotate(-45deg);
+  }
+  .perks span {
+    color: var(--v-text-secondary);
+  }
+  .results {
+    display: grid;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--v-separator);
+  }
+  .results a {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding: var(--s4) 0;
+    border-bottom: 1px solid var(--v-separator);
+    color: var(--v-text-primary);
+    text-decoration: none;
+  }
+  .results a:hover .name {
+    color: var(--v-accent-ink);
+  }
+  .results .name {
+    font-weight: 600;
+  }
+  .more {
+    margin-top: var(--s5);
+  }
+  .more a {
+    color: inherit;
+  }
+</style>

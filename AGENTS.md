@@ -16,6 +16,19 @@ anything structural.
 - The old Next.js site is in git history (before the rebuild merge) if anything needs
   looking up.
 
+## The course directory's data (docs/course-pages-plan.md)
+
+- Read only through `integrations/directory.mjs`, which calls the keyed
+  `web_directory_export` before the build. The views are closed to the public key; never
+  reopen them, and never read them from the browser or a client-side bundle.
+- `src/generated/` (git-ignored) holds the build's copy. `directory.json` is read with fs
+  by prerendered pages only; `search-index.json` is bundled into the Worker only. Neither
+  is ever a public file.
+- Never put a course outline on a page. Keep JSON-LD to identity (name, URL, geo,
+  county, website).
+- Keys (`DIRECTORY_BUILD_KEY`, `_DEV`, `WEB_API_KEY`, `DIRECTORY_WATERMARK_KEY`) live in
+  `.env.local`, `.dev.vars` and Worker secrets. Never in git.
+
 ## Design: app-true, by rule
 
 The site is built inside the app's design system (`~/Documents/VESTIGE/Vestige Design

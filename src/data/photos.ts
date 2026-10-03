@@ -26,6 +26,8 @@ export type Photo = {
   /** A safe, general caption: the town or county. */
   area: string;
   confirmed: boolean;
+  /** The directory slug of the course, once confirmed: the photo leads its page. */
+  course?: string;
 };
 
 export const photos = {
@@ -35,6 +37,7 @@ export const photos = {
     place: "Hankley Common",
     area: "Surrey",
     confirmed: true,
+    course: "hankley-common-golf-club",
   },
   teeHeather: {
     src: teeHeather,
@@ -72,6 +75,7 @@ export const photos = {
     place: "Oldham Golf Club",
     area: "Greater Manchester",
     confirmed: true,
+    course: "oldham-golf-club",
   },
   pineRidge: {
     src: pineRidge,
@@ -79,6 +83,7 @@ export const photos = {
     place: "Pine Ridge",
     area: "Surrey",
     confirmed: true,
+    course: "pine-ridge-golf-club",
   },
   farnhamEvening: {
     src: farnhamEvening,
@@ -86,8 +91,14 @@ export const photos = {
     place: "Farnham Park",
     area: "Surrey",
     confirmed: true,
+    course: "farnham-park-golf-club",
   },
 } satisfies Record<string, Photo>;
+
+/** The photo that leads a course's page, if we have a confirmed one. */
+export function photoForCourse(slug: string): Photo | undefined {
+  return Object.values(photos as Record<string, Photo>).find((p) => p.confirmed && p.course === slug);
+}
 
 /** The caption a photo may carry: the course once confirmed, else the area. */
 export function caption(photo: Photo): string {

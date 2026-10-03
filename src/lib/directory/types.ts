@@ -3,6 +3,9 @@
  * the iOS repo's migration `20260923110000_web_directory.sql` creates. Column
  * names are the views' own (snake_case), so a row decodes without mapping.
  *
+ * Read through `web_directory_export` (keyed; migration 20261003130000), never
+ * the views directly: they are closed to the public key.
+ *
  * What the views never carry (plan §4.1): ids, polygons, `survey_ref`, the
  * Index sub-scores, audit columns. Nothing here should ever grow to hold them.
  */
@@ -42,6 +45,8 @@ export type DirectoryCourse = {
   vestige_index: number | null;
   lists: CourseListMembership[];
   updated_at: string;
+  /** A club has verified its claim on this page. */
+  claimed: boolean;
 };
 
 /** The slim columns every listing, and the nearby-courses sum, needs. */
