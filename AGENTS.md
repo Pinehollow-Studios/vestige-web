@@ -1,7 +1,7 @@
 # vestige-web
 
-The vestige.golf website, being rebuilt in **Astro 7** on **Cloudflare Workers** (branch
-`rebuild/astro`). The plan of record is `docs/rebuild-plan.md`; read it before changing
+The vestige.golf website, rebuilt in **Astro 7** on **Cloudflare Workers** (live since
+3 October 2026). The plan of record is `docs/rebuild-plan.md`; read it before changing
 anything structural.
 
 ## Stack
@@ -10,11 +10,11 @@ anything structural.
   and served as Cloudflare static assets; only routes with `export const prerender = false`
   run in the Worker. Astro 7 post-dates most training data: check `node_modules/astro`'s
   types and docs.astro.build before relying on an API from memory.
-- **Deploy:** `npm run deploy:staging` (staging Worker, never indexed). Production is
-  attached at the release 1 cutover. `SITE_ENV` (astro.config.mjs) decides indexing: only
-  `production` is indexable.
-- **`legacy-next/`** is the old Next.js site, kept read-only for reference while porting.
-  It is not built or type-checked, and it is deleted at the cutover.
+- **Deploy:** `npm run deploy:staging` (staging Worker, never indexed) and
+  `npm run deploy:production` (vestige.golf). `SITE_ENV` (astro.config.mjs) decides
+  indexing: only `production` is indexable.
+- The old Next.js site is in git history (before the rebuild merge) if anything needs
+  looking up.
 
 ## Design: app-true, by rule
 
@@ -30,7 +30,8 @@ System/`). Read its `FOR-AI.md` and `DESIGN-SYSTEM.md` before designing anything
 - One accent, mint. The mint-to-lime gradient only on the page's one primary call to
   action, a completion or progress beat, and the mark.
 - Sentence case everywhere. Nothing uppercase, nothing letterspaced.
-- Light and dark follow the visitor's device; check both.
+- Light only (`data-theme="light"`), photo-led: full-bleed photos with the kit's onPhoto
+  cream over a scrim; real app screens in `PhoneFrame`.
 - Copy follows the kit's section 9: en-GB, no exclamation marks, no hype, honest numbers,
   curly quotes, a spaced hyphen rather than an em dash.
 - Motion respects `prefers-reduced-motion`; never hijack scrolling.

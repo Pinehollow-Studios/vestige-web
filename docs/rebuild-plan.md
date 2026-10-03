@@ -1,6 +1,6 @@
 # vestige.golf rebuild - the plan
 
-**Agreed:** 3 October 2026 (Tom, in conversation). A rebuild, not a port: new structure,
+**Agreed:** 3 October 2026 (Tom, in conversation). **Release 1 live on vestige.golf: 3 October 2026.** A rebuild, not a port: new structure,
 new function and a new level of craft, built in **Astro 7** and hosted on **Cloudflare
 Workers** (free plan). It replaces the Next.js site and the last of Vercel.
 
