@@ -1,0 +1,49 @@
+---
+/** Every course of one style: links, heathland, parkland and the rest. */
+import Directory from "../../../layouts/Directory.astro";
+import Section from "../../../components/directory/Section.astro";
+import Rows from "../../../components/directory/Rows.astro";
+import AppPrompt from "../../../components/directory/AppPrompt.astro";
+import { loadDirectory } from "../../../lib/directory/data";
+import { byName, plural, styleLabel, styleSlug } from "../../../lib/directory/format";
+import { DIRECTORY_COVERAGE } from "../../../lib/directory/config";
+import { breadcrumbList, courseItemList, graph } from "../../../lib/directory/jsonLd";
+import type { DirectoryCourse } from "../../../lib/directory/types";
+
+export async function getStaticPaths() {
+  const dir = await loadDirectory();
+  const groups = new Map<string, { label: string; courses: DirectoryCourse[] }>();
+  for (const c of dir.courses) {
+    if (!c.style) continue;
+    const slug = styleSlug(c.style);
+    const g = groups.get(slug) ?? { label: styleLabel(c.style) ?? c.style, courses: [] };
+    g.courses.push(c);
+    groups.set(slug, g);
+  }
+  return [...groups].map(([slug, g]) => ({ params: { slug }, props: { label: g.label, courses: g.courses.sort(byName) } }));
+}
+
+const { label, courses } = Astro.props as { label: string; courses: DirectoryCourse[] };
+const path = `/courses/style/${Astro.params.slug}`;
+const title = `${label} courses in ${DIRECTORY_COVERAGE}`;
+---
+
+<Directory
+  title={title}
+  description={`Every ${label.toLowerCase()} golf course in ${DIRECTORY_COVERAGE}: ${plural(courses.length, "course", "courses")}.`}
+  crumbs={[{ label: "Courses", href: "/courses" }, { label }]}
+  structured={graph([
+    courseItemList(title, path, courses, false),
+    breadcrumbList([
+      { name: "Courses", path: "/courses" },
+      { name: label, path },
+    ]),
+  ])}
+>
+  <h1 class="dx-title">{label}</h1>
+  <p class="dx-sub">{plural(courses.length, "course", "courses")} in {DIRECTORY_COVERAGE}</p>
+  <Section title="Every course">
+    <Rows rows={courses.map((c) => ({ href: `/courses/${c.slug}`, name: c.name, meta: c.county_name }))} />
+  </Section>
+  <AppPrompt heading="Played any? Put them on your map." />
+</Directory>

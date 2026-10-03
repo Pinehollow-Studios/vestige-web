@@ -1,0 +1,25 @@
+---
+interface Props {
+  title: string;
+  note?: string;
+}
+const { title, note } = Astro.props;
+---
+
+<section class="dx-section">
+  <h2>{title}</h2>
+  {note && <p class="v-meta note">{note}</p>}
+  <slot />
+</section>
+
+<style>
+  .dx-section {
+    margin-top: var(--s12);
+  }
+  h2 {
+    font-size: var(--t-h3);
+  }
+  .note {
+    margin-top: var(--s1);
+  }
+</style>

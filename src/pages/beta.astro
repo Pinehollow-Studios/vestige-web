@@ -1,0 +1,24 @@
+---
+/**
+ * vestige.golf/beta - the invite Tom and Jack text to people by hand: its
+ * own share card, and one button to the public TestFlight link. Never
+ * advertised (noindex, not in the sitemap). Once the App Store listing is
+ * live this points at the App Store instead.
+ */
+import LinkLanding from "../components/LinkLanding.astro";
+import { testflightUrl } from "../config/site";
+---
+
+<LinkLanding
+  title="Join the beta"
+  description="Mark the golf courses you’ve played and watch your map fill in. Free on iPhone, iOS 26 or later."
+  label="Public beta"
+  headline="How many have you played?"
+  blurb="Vestige keeps every golf course you’ve played on one map, and shows how your collection compares with your friends’."
+  cta={{
+    href: testflightUrl,
+    label: "Get the beta on TestFlight",
+    note: "It needs an iPhone on iOS 26 or later and Apple’s free TestFlight app.",
+  }}
+  ogImage="/og/beta.jpg"
+/>

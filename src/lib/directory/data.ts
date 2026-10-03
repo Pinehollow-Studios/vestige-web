@@ -1,114 +1,72 @@
-import "server-only";
-
-import { cache } from "react";
-import { readAllRows, readView } from "./source";
-import {
-  COURSE_SUMMARY_COLUMNS,
-  type CourseStamp,
-  type CourseSummary,
-  type DirectoryCounty,
-  type DirectoryCourse,
-  type DirectoryList,
-} from "./types";
-
 /**
- * The directory's reads. Each is wrapped in React's `cache` so a page that
- * asks twice in one render (generateMetadata + the page) decodes once; the
- * `fetch` underneath is memoised and data-cached by Next as well.
+ * The course directory's data, read at BUILD time from the public Supabase
+ * views (web_directory_courses / _counties / _lists) and held in memory, so
+ * every directory page is prerendered from one read and no visitor request
+ * ever touches the database.
  *
- * Tags - the names phase 2's webhook revalidates:
- *   courses          everything; the umbrella tag on every read
- *   course:<slug>    one course's full row
- *   county:<slug>    a county's row and its course listing
- *   list:<slug>      a list's row and its course listing
+ * Env (build): DIRECTORY_SUPABASE_URL + DIRECTORY_SUPABASE_ANON_KEY if set
+ * (local dev against the dev project), else SUPABASE_URL +
+ * SUPABASE_ANON_KEY (production; public values in .env.production).
  */
+import type { CourseSummary, DirectoryCounty, DirectoryCourse, DirectoryList } from "./types";
 
-const SUMMARY_SELECT = COURSE_SUMMARY_COLUMNS.join(",");
+export type Directory = {
+  courses: DirectoryCourse[];
+  counties: DirectoryCounty[];
+  lists: DirectoryList[];
+};
 
-/** Every course, slim columns, in slug order - the static params and the nearby sum. */
-export const getAllCourseSummaries = cache(async (): Promise<CourseSummary[]> => {
-  const query = new URLSearchParams({ select: SUMMARY_SELECT, order: "slug.asc" });
-  return readAllRows<CourseSummary>("web_directory_courses", query, ["courses"]);
-});
-
-/** Every course's slug, style and last edit - the sitemap's `lastModified`. */
-export const getCourseStamps = cache(async (): Promise<CourseStamp[]> => {
-  const query = new URLSearchParams({ select: "slug,style,updated_at", order: "slug.asc" });
-  return readAllRows<CourseStamp>("web_directory_courses", query, ["courses"]);
-});
-
-/** One course's full row, or null when no course has that slug. */
-export const getCourse = cache(async (slug: string): Promise<DirectoryCourse | null> => {
-  const query = new URLSearchParams({ select: "*", slug: `eq.${slug}`, limit: "1" });
-  const rows = await readView<DirectoryCourse>("web_directory_courses", query, [
-    "courses",
-    `course:${slug}`,
-  ]);
-  return rows[0] ?? null;
-});
-
-export const getAllCounties = cache(async (): Promise<DirectoryCounty[]> => {
-  const query = new URLSearchParams({ select: "*", order: "name.asc" });
-  return readAllRows<DirectoryCounty>("web_directory_counties", query, ["courses"]);
-});
-
-export const getCounty = cache(async (slug: string): Promise<DirectoryCounty | null> => {
-  const query = new URLSearchParams({ select: "*", slug: `eq.${slug}`, limit: "1" });
-  const rows = await readView<DirectoryCounty>("web_directory_counties", query, [
-    "courses",
-    `county:${slug}`,
-  ]);
-  return rows[0] ?? null;
-});
-
-/** A county's courses, read by the county's own tag so an edit there refreshes the page. */
-export const getCountyCourses = cache(async (slug: string): Promise<CourseSummary[]> => {
-  const query = new URLSearchParams({
-    select: SUMMARY_SELECT,
-    county_slug: `eq.${slug}`,
-    order: "slug.asc",
-  });
-  return readAllRows<CourseSummary>("web_directory_courses", query, [
-    "courses",
-    `county:${slug}`,
-  ]);
-});
-
-export const getAllLists = cache(async (): Promise<DirectoryList[]> => {
-  const query = new URLSearchParams({ select: "*", order: "name.asc" });
-  return readAllRows<DirectoryList>("web_directory_lists", query, ["courses"]);
-});
-
-export const getList = cache(async (slug: string): Promise<DirectoryList | null> => {
-  const query = new URLSearchParams({ select: "*", slug: `eq.${slug}`, limit: "1" });
-  const rows = await readView<DirectoryList>("web_directory_lists", query, [
-    "courses",
-    `list:${slug}`,
-  ]);
-  return rows[0] ?? null;
-});
-
-/**
- * A list's courses in list order. Membership lives in each course's `lists`
- * jsonb, so this is PostgREST's jsonb "contains" filter; the position comes
- * off the same membership entry.
- */
-export const getListCourses = cache(
-  async (slug: string): Promise<Array<CourseSummary & { position: number }>> => {
-    const query = new URLSearchParams({
-      select: SUMMARY_SELECT,
-      lists: `cs.${JSON.stringify([{ slug }])}`,
-      order: "slug.asc",
-    });
-    const rows = await readAllRows<CourseSummary>("web_directory_courses", query, [
-      "courses",
-      `list:${slug}`,
-    ]);
-    return rows
-      .map((course) => ({
-        ...course,
-        position: course.lists.find((l) => l.slug === slug)?.position ?? Number.MAX_SAFE_INTEGER,
-      }))
-      .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, "en-GB"));
+function source(): { url: string; key: string } {
+  const url = process.env.DIRECTORY_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.DIRECTORY_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!url || !key) {
+    throw new Error("The course directory has no data source: set SUPABASE_URL and SUPABASE_ANON_KEY.");
   }
-);
+  return { url: url.replace(/\/+$/, ""), key };
+}
+
+async function readAll<T>(view: string, query: Record<string, string>): Promise<T[]> {
+  const { url, key } = source();
+  const rows: T[] = [];
+  for (;;) {
+    const qs = new URLSearchParams({ ...query, limit: "1000", offset: String(rows.length) });
+    const res = await fetch(`${url}/rest/v1/${view}?${qs}`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}`, Accept: "application/json" },
+    });
+    if (!res.ok) {
+      throw new Error(`Reading ${view} failed: ${res.status} ${(await res.text()).slice(0, 200)}`);
+    }
+    const batch = (await res.json()) as T[];
+    if (batch.length === 0) return rows;
+    rows.push(...batch);
+    if (rows.length > 20000) throw new Error(`Reading ${view} did not end after 20,000 rows.`);
+  }
+}
+
+let loaded: Promise<Directory> | null = null;
+
+/** Everything, read once per build. */
+export function loadDirectory(): Promise<Directory> {
+  loaded ??= Promise.all([
+    readAll<DirectoryCourse>("web_directory_courses", { select: "*", order: "slug.asc" }),
+    readAll<DirectoryCounty>("web_directory_counties", { select: "*", order: "name.asc" }),
+    readAll<DirectoryList>("web_directory_lists", { select: "*", order: "name.asc" }),
+  ]).then(([courses, counties, lists]) => ({ courses, counties, lists }));
+  return loaded;
+}
+
+/** The slim summary of a course, for listings and the nearby sum. */
+export function summary(c: DirectoryCourse): CourseSummary {
+  const { slug, name, county_name, county_slug, course_type, hole_count, style, tier, lat, lng, vestige_index, lists } = c;
+  return { slug, name, county_name, county_slug, course_type, hole_count, style, tier, lat, lng, vestige_index, lists };
+}
+
+/** A list's courses in list order. */
+export function listCourses(dir: Directory, slug: string): Array<DirectoryCourse & { position: number }> {
+  return dir.courses
+    .flatMap((c) => {
+      const m = c.lists.find((l) => l.slug === slug);
+      return m ? [{ ...c, position: m.position }] : [];
+    })
+    .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, "en-GB"));
+}

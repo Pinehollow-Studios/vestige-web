@@ -13,9 +13,12 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# build output
+/dist/
+/.astro/
+/.wrangler/
+.dev.vars*
+/legacy-next/.next/
 
 # production
 /build
@@ -33,13 +36,14 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+# Public production build values only (see the file header).
+!.env.production
 
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 # Temporary git commit-message files
 .commit-msg*

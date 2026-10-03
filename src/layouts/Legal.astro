@@ -1,0 +1,76 @@
+---
+/** A legal page: the document's title and its markdown, set for reading. */
+import Base from "./Base.astro";
+import { loadLegal } from "../lib/legal";
+
+interface Props {
+  file: string;
+  description: string;
+}
+const { file, description } = Astro.props;
+const doc = loadLegal(file);
+---
+
+<Base title={doc.title} description={description}>
+  <article class="v-container legal">
+    <h1>{doc.title}</h1>
+    <div class="prose" set:html={doc.html} />
+  </article>
+</Base>
+
+<style>
+  .legal {
+    max-width: calc(720px + 2 * var(--page-gutter));
+    padding-block: var(--s16) 0;
+  }
+  h1 {
+    margin-bottom: var(--s7);
+  }
+  .prose {
+    color: var(--v-text-primary);
+    font-size: var(--t-ui-large);
+    line-height: 1.65;
+  }
+  .prose :global(h2) {
+    font-size: var(--t-h3);
+    margin: var(--s12) 0 var(--s3);
+  }
+  .prose :global(h3) {
+    font-size: var(--t-ui-large);
+    font-family: var(--font-ui);
+    margin: var(--s7) 0 var(--s2);
+  }
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol),
+  .prose :global(table),
+  .prose :global(blockquote) {
+    margin: 0 0 var(--s4);
+  }
+  .prose :global(li) {
+    margin-bottom: var(--s2);
+  }
+  .prose :global(blockquote) {
+    padding: var(--s3) var(--s4);
+    border-left: 3px solid var(--v-accent);
+    background: var(--v-surface-raised);
+    border-radius: 0 var(--r-md) var(--r-md) 0;
+    color: var(--v-text-secondary);
+  }
+  .prose :global(table) {
+    display: block;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: var(--t-ui-body);
+  }
+  .prose :global(th),
+  .prose :global(td) {
+    text-align: left;
+    vertical-align: top;
+    padding: var(--s2) var(--s3);
+    border-bottom: 1px solid var(--v-separator);
+  }
+  .prose :global(a) {
+    overflow-wrap: anywhere;
+  }
+</style>

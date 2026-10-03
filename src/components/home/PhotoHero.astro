@@ -1,0 +1,205 @@
+---
+/**
+ * The homepage hero: one big photograph of a real British course, the
+ * question, and a course search that leads straight into the directory
+ * (the AllTrails / Top 100 pattern). Cream ink over a scrim, per the
+ * kit's over-photography tokens.
+ */
+import { Picture } from "astro:assets";
+import { caption, type Photo } from "../../data/photos";
+import { progressConfig } from "../../data/progressConfig";
+import { screens } from "../../data/screens";
+import PhoneFrame from "../PhoneFrame.astro";
+
+interface Props {
+  photo: Photo;
+}
+const { photo } = Astro.props;
+const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
+---
+
+<section class="hero" aria-labelledby="hero-title">
+  <Picture
+    src={photo.src}
+    alt={photo.alt}
+    formats={["avif", "webp"]}
+    widths={[640, 960, 1280, 1920, 2560]}
+    sizes="100vw"
+    loading="eager"
+    fetchpriority="high"
+    class="hero-photo"
+  />
+  <div class="scrim" aria-hidden="true"></div>
+  <div class="v-container content">
+    <div class="text">
+    <h1 id="hero-title">How many have you played?</h1>
+    <p class="lead">
+      Every golf course in Britain on one map. Mark the ones you’ve played, fill in your
+      counties, and finally settle the argument at the bar.
+    </p>
+    <form class="search" action="/courses" method="get" role="search">
+      <label class="v-visually-hidden" for="hero-q">Find a course</label>
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22">
+        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle>
+        <path d="m20 20-3.6-3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+      </svg>
+      <input
+        id="hero-q"
+        name="q"
+        type="search"
+        inputmode="search"
+        enterkeyhint="search"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder={`Search ${courses} courses`}
+      />
+      <button type="submit">Search</button>
+    </form>
+    </div>
+    <PhoneFrame screen={screens.courseHankley} maxWidth={300} loading="eager" class="hero-phone" />
+  </div>
+  <p class="credit">{caption(photo)}</p>
+</section>
+
+<style>
+  /* The text sits up in the sky so the photo's subject - the two
+     shadows on the fairway - stays clear at the bottom. */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: start;
+    min-height: min(88svh, 860px);
+    overflow: hidden;
+    color: var(--v-on-photo);
+  }
+  .hero :global(.hero-photo),
+  .hero :global(.hero-photo img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 32%;
+    z-index: -2;
+  }
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--v-on-photo-scrim) 42%, transparent) 0%,
+        color-mix(in srgb, var(--v-on-photo-scrim) 22%, transparent) 38%,
+        transparent 62%
+      ),
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--v-on-photo-scrim) 36%, transparent) 0%,
+        color-mix(in srgb, var(--v-on-photo-scrim) 18%, transparent) 45%,
+        transparent 68%
+      );
+  }
+  .content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: var(--s12);
+    padding-block: clamp(var(--s12), 9vh, 120px) var(--s12);
+  }
+  .text {
+    display: grid;
+    gap: var(--s5);
+  }
+  /* The app beside the photo: the same course, Hankley Common, as the
+     app shows it. Desktop only; phones keep the photo and search clear. */
+  .content :global(.hero-phone) {
+    width: 280px;
+    align-self: end;
+    transform: rotate(2.5deg);
+  }
+  @media (max-width: 1023px) {
+    .content {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .content :global(.hero-phone) {
+      display: none;
+    }
+  }
+  h1 {
+    font-size: clamp(2.75rem, 1.6rem + 5.4vw, 5.5rem);
+    font-weight: 600;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    max-width: 11ch;
+    color: var(--v-on-photo);
+    text-wrap: balance;
+  }
+  .lead {
+    max-width: 34rem;
+    font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.3125rem);
+    line-height: 1.45;
+    color: color-mix(in srgb, var(--v-on-photo) 92%, transparent);
+  }
+  .search {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    width: min(100%, 560px);
+    margin-top: var(--s3);
+    padding: var(--s2) var(--s2) var(--s2) var(--s5);
+    background: var(--v-surface-raised);
+    border-radius: var(--r-pill);
+    color: var(--v-text-secondary);
+  }
+  .search svg {
+    flex: none;
+  }
+  .search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: var(--v-text-primary);
+    padding-block: var(--s3);
+  }
+  .search input::placeholder {
+    color: var(--v-text-tertiary);
+  }
+  .search:focus-within {
+    outline: 3px solid color-mix(in srgb, var(--v-accent) 70%, transparent);
+    outline-offset: 2px;
+  }
+  .search button {
+    flex: none;
+    border: 0;
+    border-radius: var(--r-pill);
+    padding: 0 var(--s6);
+    min-height: 48px;
+    background: var(--v-accent);
+    color: var(--v-on-accent);
+    font: inherit;
+    font-size: var(--t-ui-body);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .credit {
+    position: absolute;
+    left: var(--page-gutter);
+    bottom: var(--s5);
+    font-size: var(--t-ui-meta);
+    color: color-mix(in srgb, var(--v-on-photo) 80%, transparent);
+  }
+  @media (max-width: 560px) {
+    .search button {
+      padding: 0 var(--s4);
+    }
+    .credit {
+      display: none;
+    }
+  }
+</style>

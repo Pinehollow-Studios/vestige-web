@@ -1,0 +1,240 @@
+/* Vestige — colour tokens.
+ * Generated from the iOS asset catalogue by scripts/design-kit/extract-palette.mjs.
+ * Never hand-edit: re-run the extractor instead.
+ *
+ * Light values sit on :root; dark values override under both an explicit
+ * [data-theme="dark"] and prefers-color-scheme, so a page works with a
+ * toggle, with the OS setting, or with neither.
+ */
+
+:root {
+  /* Surfaces & fills */
+  --v-surface: #f2f5fa;
+  --v-surface-raised: #ffffff;
+  --v-surface-sunken: rgba(14, 24, 34, 0.04);
+  --v-surface-glass: rgba(255, 255, 255, 0.85);
+  --v-control-glass: rgba(245, 249, 255, 0);
+  --v-control-chrome: rgba(255, 255, 255, 0.96);
+  --v-surface-highlight: rgba(255, 255, 255, 0.8);
+  --v-fill-faint: rgba(14, 24, 34, 0.05);
+  --v-fill-soft: rgba(14, 24, 34, 0.09);
+  --v-badge-ground: #111a28;
+
+  /* Lines */
+  --v-separator: rgba(14, 24, 34, 0.1);
+  --v-separator-strong: rgba(14, 24, 34, 0.16);
+  --v-border: rgba(14, 24, 34, 0.1);
+
+  /* Text */
+  --v-text-primary: #0b0f14;
+  --v-text-secondary: #4a5662;
+  --v-text-tertiary: #7e8a96;
+
+  /* Accent - the one brand colour */
+  --v-accent: #14cca0;
+  --v-accent-ink: #0faf88;
+  --v-accent-lime: #18dc5a;
+  --v-accent-soft: rgba(20, 204, 160, 0.14);
+  --v-on-accent: #06231c;
+
+  /* Status */
+  --v-bucket: #c9802f;
+  --v-on-bucket: #3d2308;
+  --v-alert: #b83a24;
+
+  /* Atmosphere */
+  --v-atmosphere-glow: rgba(76, 134, 200, 0.18);
+  --v-atmosphere-wash: rgba(186, 212, 242, 0.55);
+
+  /* Map */
+  --v-sea1: #070a10;
+  --v-sea2: #1b2d42;
+  --v-sea3: #26405e;
+  --v-ramp-moss: #7bb47a;
+  --v-ramp-pine: #2d7a3f;
+  --v-ramp-peak: #1a4d2e;
+  --v-pin-to-play: rgba(14, 24, 34, 0.35);
+  --v-map-county-line: rgba(62, 88, 114, 0.22);
+  --v-map-course-unplayed: #6b8095;
+  --v-map-course-on-satellite: #ffffff;
+  --v-map-played-edge-mint: #14cca0;
+  --v-map-played-edge-lime: #18dc5a;
+  --v-map-user-ping-ring: #ffffff;
+  --v-map-user-ping-shadow: rgba(14, 24, 34, 0.38);
+  --v-map-chrome-tint: #6e7a89;
+  --v-map-wordmark: #000000;
+
+  /* Over photography */
+  --v-on-photo: #fbf6e8;
+  --v-on-photo-scrim: #000000;
+
+  /* Elevation */
+  --v-shadow-resting: rgba(20, 40, 60, 0.1);
+  --v-shadow-floating: rgba(20, 40, 60, 0.16);
+  --v-shadow-modal: rgba(20, 40, 60, 0.22);
+
+  /* List accents */
+  --v-list-sand: #8c6317;
+  --v-list-copper: #ac4c1e;
+  --v-list-claret: #b0303d;
+  --v-list-plum: #8b4a9c;
+  --v-list-delft: #2a6ba8;
+  --v-list-slate: #566e7d;
+  --v-list-moss: #47762f;
+  --v-list-ink: #2a3440;
+
+  /* Vestige Pro (Honours) */
+  --v-pro-ground: #ecf1f9;
+  --v-pro-raised: #ffffff;
+  --v-pro-core: #a98c44;
+  --v-pro-ink: #6e5a24;
+  --v-pro-glyph: #6e5a24;
+  --v-pro-numeral: #6e5a24;
+  --v-pro-text-secondary: #5c6878;
+  --v-pro-text-tertiary: #8c8368;
+  --v-pro-brass-top: #c2a45c;
+  --v-pro-brass-bottom: #a98c44;
+  --v-pro-brass-pressed: #a98c44;
+  --v-pro-brass-ink: #241b06;
+  --v-pro-chip-fill: #f5eedc;
+  --v-pro-glass-tint: rgba(110, 90, 36, 0.06);
+  --v-pro-border: rgba(110, 90, 36, 0.28);
+  --v-pro-hairline: rgba(110, 90, 36, 0.16);
+  --v-pro-highlight: rgba(255, 255, 255, 0.6);
+  --v-pro-glow: rgba(194, 164, 92, 0.12);
+  --v-pro-floor: rgba(220, 201, 142, 0.22);
+  --v-pro-vignette: rgba(124, 111, 78, 0.12);
+
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --v-surface: #070a10;
+    --v-surface-raised: #0c1220;
+    --v-surface-sunken: rgba(20, 46, 70, 0.5);
+    --v-surface-glass: rgba(14, 24, 38, 0.72);
+    --v-control-glass: rgba(14, 24, 38, 0.72);
+    --v-control-chrome: rgba(14, 24, 38, 0.72);
+    --v-surface-highlight: rgba(255, 255, 255, 0.14);
+    --v-fill-faint: rgba(255, 255, 255, 0.06);
+    --v-fill-soft: rgba(255, 255, 255, 0.12);
+    --v-badge-ground: #111a28;
+    --v-separator: rgba(255, 255, 255, 0.1);
+    --v-separator-strong: rgba(255, 255, 255, 0.18);
+    --v-border: rgba(255, 255, 255, 0);
+    --v-text-primary: #f2efe6;
+    --v-text-secondary: #9da9b6;
+    --v-text-tertiary: #66717e;
+    --v-accent: #5be4c3;
+    --v-accent-ink: #5be4c3;
+    --v-accent-lime: #8fe85b;
+    --v-accent-soft: rgba(91, 228, 195, 0.14);
+    --v-bucket: #f4a85c;
+    --v-alert: #e2664e;
+    --v-atmosphere-glow: rgba(62, 116, 176, 0.2);
+    --v-atmosphere-wash: rgba(27, 45, 66, 0.22);
+    --v-pin-to-play: rgba(255, 255, 255, 0.4);
+    --v-map-county-line: rgba(242, 239, 230, 0.45);
+    --v-map-course-unplayed: #d1d1d1;
+    --v-map-played-edge-mint: #5be4c3;
+    --v-map-played-edge-lime: #8fe85b;
+    --v-map-user-ping-ring: #ffffff;
+    --v-map-user-ping-shadow: rgba(0, 0, 0, 0.45);
+    --v-map-wordmark: #ffffff;
+    --v-shadow-resting: rgba(0, 0, 0, 0.35);
+    --v-shadow-floating: rgba(0, 0, 0, 0.6);
+    --v-shadow-modal: rgba(0, 0, 0, 0.7);
+    --v-list-sand: #e8c46a;
+    --v-list-copper: #f0925a;
+    --v-list-claret: #e8697a;
+    --v-list-plum: #c98bda;
+    --v-list-delft: #6fb4e8;
+    --v-list-slate: #9fb6c4;
+    --v-list-moss: #8fc97a;
+    --v-list-ink: #d8e2ec;
+    --v-pro-ground: #0e0c07;
+    --v-pro-raised: #17130a;
+    --v-pro-core: #c2a45c;
+    --v-pro-ink: #dcc98e;
+    --v-pro-glyph: #cdb577;
+    --v-pro-numeral: #ebdfb8;
+    --v-pro-text-secondary: #b0a582;
+    --v-pro-text-tertiary: #7e7457;
+    --v-pro-brass-top: #d6bc78;
+    --v-pro-brass-bottom: #b79a4e;
+    --v-pro-brass-pressed: #b79a4e;
+    --v-pro-chip-fill: rgba(194, 164, 92, 0.08);
+    --v-pro-glass-tint: rgba(194, 164, 92, 0.1);
+    --v-pro-border: rgba(214, 188, 120, 0.28);
+    --v-pro-hairline: rgba(214, 188, 120, 0.16);
+    --v-pro-highlight: rgba(235, 223, 184, 0.16);
+    --v-pro-glow: rgba(194, 164, 92, 0.2);
+    --v-pro-floor: rgba(58, 48, 24, 0.3);
+    --v-pro-vignette: rgba(0, 0, 0, 0.55);
+  }
+}
+
+[data-theme="dark"] {
+  --v-surface: #070a10;
+  --v-surface-raised: #0c1220;
+  --v-surface-sunken: rgba(20, 46, 70, 0.5);
+  --v-surface-glass: rgba(14, 24, 38, 0.72);
+  --v-control-glass: rgba(14, 24, 38, 0.72);
+  --v-control-chrome: rgba(14, 24, 38, 0.72);
+  --v-surface-highlight: rgba(255, 255, 255, 0.14);
+  --v-fill-faint: rgba(255, 255, 255, 0.06);
+  --v-fill-soft: rgba(255, 255, 255, 0.12);
+  --v-badge-ground: #111a28;
+  --v-separator: rgba(255, 255, 255, 0.1);
+  --v-separator-strong: rgba(255, 255, 255, 0.18);
+  --v-border: rgba(255, 255, 255, 0);
+  --v-text-primary: #f2efe6;
+  --v-text-secondary: #9da9b6;
+  --v-text-tertiary: #66717e;
+  --v-accent: #5be4c3;
+  --v-accent-ink: #5be4c3;
+  --v-accent-lime: #8fe85b;
+  --v-accent-soft: rgba(91, 228, 195, 0.14);
+  --v-bucket: #f4a85c;
+  --v-alert: #e2664e;
+  --v-atmosphere-glow: rgba(62, 116, 176, 0.2);
+  --v-atmosphere-wash: rgba(27, 45, 66, 0.22);
+  --v-pin-to-play: rgba(255, 255, 255, 0.4);
+  --v-map-county-line: rgba(242, 239, 230, 0.45);
+  --v-map-course-unplayed: #d1d1d1;
+  --v-map-played-edge-mint: #5be4c3;
+  --v-map-played-edge-lime: #8fe85b;
+  --v-map-user-ping-ring: #ffffff;
+  --v-map-user-ping-shadow: rgba(0, 0, 0, 0.45);
+  --v-map-wordmark: #ffffff;
+  --v-shadow-resting: rgba(0, 0, 0, 0.35);
+  --v-shadow-floating: rgba(0, 0, 0, 0.6);
+  --v-shadow-modal: rgba(0, 0, 0, 0.7);
+  --v-list-sand: #e8c46a;
+  --v-list-copper: #f0925a;
+  --v-list-claret: #e8697a;
+  --v-list-plum: #c98bda;
+  --v-list-delft: #6fb4e8;
+  --v-list-slate: #9fb6c4;
+  --v-list-moss: #8fc97a;
+  --v-list-ink: #d8e2ec;
+  --v-pro-ground: #0e0c07;
+  --v-pro-raised: #17130a;
+  --v-pro-core: #c2a45c;
+  --v-pro-ink: #dcc98e;
+  --v-pro-glyph: #cdb577;
+  --v-pro-numeral: #ebdfb8;
+  --v-pro-text-secondary: #b0a582;
+  --v-pro-text-tertiary: #7e7457;
+  --v-pro-brass-top: #d6bc78;
+  --v-pro-brass-bottom: #b79a4e;
+  --v-pro-brass-pressed: #b79a4e;
+  --v-pro-chip-fill: rgba(194, 164, 92, 0.08);
+  --v-pro-glass-tint: rgba(194, 164, 92, 0.1);
+  --v-pro-border: rgba(214, 188, 120, 0.28);
+  --v-pro-hairline: rgba(214, 188, 120, 0.16);
+  --v-pro-highlight: rgba(235, 223, 184, 0.16);
+  --v-pro-glow: rgba(194, 164, 92, 0.2);
+  --v-pro-floor: rgba(58, 48, 24, 0.3);
+  --v-pro-vignette: rgba(0, 0, 0, 0.55);
+}

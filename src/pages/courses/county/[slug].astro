@@ -1,0 +1,66 @@
+---
+/** A county: every course in it, full-size first, short courses after. */
+import Directory from "../../../layouts/Directory.astro";
+import Section from "../../../components/directory/Section.astro";
+import Rows from "../../../components/directory/Rows.astro";
+import AppPrompt from "../../../components/directory/AppPrompt.astro";
+import { loadDirectory } from "../../../lib/directory/data";
+import { byName, formatNumber, plural, styleLabel } from "../../../lib/directory/format";
+import { breadcrumbList, courseItemList, graph } from "../../../lib/directory/jsonLd";
+import type { DirectoryCounty, DirectoryCourse } from "../../../lib/directory/types";
+
+export async function getStaticPaths() {
+  const dir = await loadDirectory();
+  return dir.counties.map((county) => ({
+    params: { slug: county.slug },
+    props: { county, courses: dir.courses.filter((c) => c.county_slug === county.slug) },
+  }));
+}
+
+const { county, courses } = Astro.props as { county: DirectoryCounty; courses: DirectoryCourse[] };
+const full = courses.filter((c) => c.tier !== "short").sort(byName);
+const short = courses.filter((c) => c.tier === "short").sort(byName);
+const path = `/courses/county/${county.slug}`;
+const toRow = (c: DirectoryCourse) => ({
+  href: `/courses/${c.slug}`,
+  name: c.name,
+  meta: [styleLabel(c.style), c.hole_count != null ? plural(c.hole_count, "hole", "holes") : null]
+    .filter(Boolean)
+    .join(" · "),
+  end: c.vestige_index,
+  endLabel: c.vestige_index != null ? `Vestige Index ${c.vestige_index}` : undefined,
+});
+const sub =
+  courses.length === 0
+    ? "No courses here yet."
+    : short.length > 0 && full.length > 0
+      ? `${plural(courses.length, "course", "courses")}, ${formatNumber(short.length)} of them short`
+      : plural(courses.length, "course", "courses");
+---
+
+<Directory
+  title={`Golf courses in ${county.name}`}
+  description={`Every golf course in ${county.name}: ${plural(courses.length, "course", "courses")}, with the facts for each.`}
+  crumbs={[{ label: "Courses", href: "/courses" }, { label: county.name }]}
+  structured={graph([
+    courseItemList(`Golf courses in ${county.name}`, path, [...full, ...short], false),
+    breadcrumbList([
+      { name: "Courses", path: "/courses" },
+      { name: county.name, path },
+    ]),
+  ])}
+>
+  <h1 class="dx-title">{county.name}</h1>
+  <p class="dx-sub">{sub}</p>
+  {full.length > 0 && (
+    <Section title={short.length > 0 ? "Courses" : "Every course"}>
+      <Rows rows={full.map(toRow)} />
+    </Section>
+  )}
+  {short.length > 0 && (
+    <Section title="Short courses">
+      <Rows rows={short.map(toRow)} />
+    </Section>
+  )}
+  {courses.length > 0 && <AppPrompt heading="Played any? Put them on your map." />}
+</Directory>

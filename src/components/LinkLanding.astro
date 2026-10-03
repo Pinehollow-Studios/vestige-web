@@ -1,0 +1,78 @@
+---
+/**
+ * What a friend without the app sees when a Vestige share link opens in a
+ * browser (/u, /course, /list, /society/join, /beta). With the app
+ * installed, iOS opens the app instead and this never renders. One job:
+ * say what was shared, and give the way in.
+ */
+import Base from "../layouts/Base.astro";
+import PhoneFrame from "./PhoneFrame.astro";
+import { screens } from "../data/screens";
+
+interface Props {
+  title: string;
+  description: string;
+  label: string;
+  headline: string;
+  blurb: string;
+  cta?: { href: string; label: string; note: string };
+  ogImage?: string;
+}
+const { title, description, label, headline, blurb, cta, ogImage } = Astro.props;
+const way = cta ?? {
+  href: "/app",
+  label: "See what Vestige is",
+  note: "Version 1.0 arrives in January. Once you have the app, open this link on your iPhone to go straight there.",
+};
+---
+
+<Base title={title} description={description} noindex ogImage={ogImage}>
+  <section class="v-container landing">
+    <div class="copy">
+      <p class="v-label">{label}</p>
+      <h1>{headline}</h1>
+      <p class="v-lead">{blurb}</p>
+      <a class="v-button v-button--primary" href={way.href}>{way.label}</a>
+      <p class="v-meta note">{way.note}</p>
+    </div>
+    <PhoneFrame screen={screens.homeMap} maxWidth={280} loading="eager" class="landing-phone" />
+  </section>
+</Base>
+
+<style>
+  .landing {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--s12);
+    padding-block: var(--s16) var(--s12);
+  }
+  .copy {
+    display: grid;
+    gap: var(--s4);
+    justify-items: start;
+    max-width: 36rem;
+  }
+  h1 {
+    font-size: clamp(2.25rem, 1.6rem + 3vw, 3.5rem);
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+  }
+  .note {
+    max-width: 30rem;
+  }
+  .landing :global(.landing-phone) {
+    width: 260px;
+    transform: rotate(2deg);
+  }
+  @media (max-width: 760px) {
+    .landing {
+      grid-template-columns: minmax(0, 1fr);
+      padding-block: var(--s12) var(--s7);
+    }
+    .landing :global(.landing-phone) {
+      width: 200px;
+      justify-self: center;
+    }
+  }
+</style>

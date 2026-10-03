@@ -1,0 +1,62 @@
+---
+/**
+ * The directory's one way into the app: until 1.0 is on the App Store it
+ * leads to the 1.0 signup on the homepage.
+ */
+import PhoneFrame from "../PhoneFrame.astro";
+import { screens } from "../../data/screens";
+
+interface Props {
+  heading?: string;
+}
+const { heading = "Played it? Put it on your map." } = Astro.props;
+---
+
+<aside class="prompt" aria-label="Vestige, the app">
+  <div class="copy">
+    <h2>{heading}</h2>
+    <p>Vestige keeps every course you’ve played on one map, county by county. Free on iPhone, with version 1.0 in January.</p>
+    <a class="v-button v-button--primary" href="/#notify">Tell me when it’s out</a>
+  </div>
+  <PhoneFrame screen={screens.homeMap} maxWidth={180} class="prompt-phone" />
+</aside>
+
+<style>
+  .prompt {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--s7);
+    margin-top: var(--s16);
+    padding: var(--s7);
+    background: var(--v-surface-raised);
+    box-shadow: var(--card-edge);
+    border-radius: var(--r-xxl);
+    overflow: hidden;
+  }
+  .copy {
+    display: grid;
+    gap: var(--s3);
+    justify-items: start;
+  }
+  h2 {
+    font-size: var(--t-h2);
+  }
+  p {
+    color: var(--v-text-secondary);
+    max-width: 30rem;
+  }
+  .prompt :global(.prompt-phone) {
+    width: 160px;
+    margin-bottom: calc(-1 * var(--s16));
+    transform: rotate(3deg);
+  }
+  @media (max-width: 640px) {
+    .prompt {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .prompt :global(.prompt-phone) {
+      display: none;
+    }
+  }
+</style>

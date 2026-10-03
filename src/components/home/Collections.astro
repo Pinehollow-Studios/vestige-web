@@ -1,0 +1,117 @@
+---
+/**
+ * Curated lists worth chasing, each in one of the kit's list accents
+ * (never mint: mint is the played signal). They link to the directory's
+ * list pages.
+ */
+const lists = [
+  {
+    href: "/courses/list/top-100-england",
+    name: "Top 100 England",
+    count: 100,
+    note: "The ones everyone argues about.",
+    tone: "sand",
+  },
+  {
+    href: "/courses/list/the-open-rotation-england",
+    name: "The Open venues",
+    count: 6,
+    note: "England’s Open Championship links.",
+    tone: "delft",
+  },
+  {
+    href: "/courses/list/heathland-classics",
+    name: "Heathland classics",
+    count: 22,
+    note: "Heather, pines and sandy soil.",
+    tone: "moss",
+  },
+] as const;
+---
+
+<section class="v-container collections v-reveal" aria-labelledby="collections-title">
+  <div class="intro">
+    <h2 id="collections-title">Lists to work through.</h2>
+    <p class="v-lead">Pick a list and start ticking. Some take a summer, some take a lifetime.</p>
+  </div>
+  <ul>
+    {
+      lists.map((list) => (
+        <li>
+          <a href={list.href} class:list={["card", list.tone]}>
+            <span class="count v-tabular">{list.count}</span>
+            <span class="name">{list.name}</span>
+            <span class="note">{list.note}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
+
+<style>
+  .collections {
+    display: grid;
+    gap: var(--s7);
+    padding-block: var(--section-gap) 0;
+  }
+  .intro {
+    display: grid;
+    gap: var(--s4);
+    max-width: 40rem;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: var(--s4);
+  }
+  .card {
+    --tone: var(--v-list-sand);
+    display: grid;
+    gap: var(--s2);
+    align-content: end;
+    min-height: 220px;
+    padding: var(--s6);
+    border-radius: var(--r-xxl);
+    background: color-mix(in srgb, var(--tone) 12%, var(--v-surface-raised));
+    color: var(--v-text-primary);
+    text-decoration: none;
+    transition: transform var(--dur-base) var(--ease-spring), background-color var(--dur-base) var(--ease-spring);
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    background: color-mix(in srgb, var(--tone) 18%, var(--v-surface-raised));
+  }
+  .sand { --tone: var(--v-list-sand); }
+  .delft { --tone: var(--v-list-delft); }
+  .moss { --tone: var(--v-list-moss); }
+  .count {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: var(--tone);
+  }
+  .name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t-h3);
+  }
+  .note {
+    color: var(--v-text-secondary);
+    font-size: var(--t-ui-body);
+  }
+  @media (max-width: 600px) {
+    .card {
+      min-height: 0;
+      padding: var(--s5);
+    }
+    .count {
+      font-size: 44px;
+    }
+  }
+</style>

@@ -1,0 +1,108 @@
+---
+/**
+ * The site footer: what Vestige is, where to go, who makes it. The last
+ * line is the UK company disclosure (name, number, place of registration,
+ * registered office), which a limited company's website must carry.
+ */
+import Lockup from "./Lockup.astro";
+import { legalNav, nav, site } from "../config/site";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="v-container">
+    <div class="top">
+      <div class="brand">
+        <Lockup size={32} />
+        <p class="v-meta">{site.tagline}</p>
+      </div>
+      <nav aria-label="Footer">
+        <div>
+          <p class="col-title">Vestige</p>
+          <ul>
+            {nav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+          </ul>
+        </div>
+        <div>
+          <p class="col-title">Get in touch</p>
+          <ul>
+            <li><a href={`mailto:${site.email.hello}`}>{site.email.hello}</a></li>
+            <li><a href={`mailto:${site.email.support}`}>Help with the app</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="col-title">Legal</p>
+          <ul>
+            {legalNav.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+          </ul>
+        </div>
+      </nav>
+    </div>
+    <p class="disclosure v-meta">
+      © {year} <a href={site.company.website}>{site.company.name}</a>{
+        `, registered in ${site.company.registeredIn}, company number ${site.company.number}. ` +
+          `Registered office: ${site.company.office}. No ads, ever.`
+      }
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--section-gap);
+    padding-block: var(--s12) var(--s7);
+    border-top: 1px solid var(--v-separator);
+  }
+  .top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: var(--s7);
+  }
+  .brand {
+    display: grid;
+    gap: var(--s3);
+    align-content: start;
+  }
+  nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s6);
+  }
+  .col-title {
+    font-size: var(--t-ui-meta);
+    font-weight: 600;
+    margin-bottom: var(--s3);
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--s2);
+  }
+  nav a,
+  .disclosure a {
+    color: var(--v-text-secondary);
+    text-decoration: none;
+    font-size: var(--t-ui-body);
+    overflow-wrap: anywhere;
+  }
+  nav a:hover,
+  .disclosure a:hover {
+    color: var(--v-text-primary);
+  }
+  .disclosure {
+    margin-top: var(--s12);
+    max-width: 72ch;
+  }
+  .disclosure a {
+    font-size: inherit;
+  }
+  @media (max-width: 760px) {
+    .top,
+    nav {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

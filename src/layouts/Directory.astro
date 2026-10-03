@@ -1,0 +1,82 @@
+---
+/**
+ * A course directory page: the site shell, breadcrumbs, a heading and the
+ * page's content, with its structured data. Every directory page carries
+ * noindex until DIRECTORY_INDEXABLE is switched on (lib/directory/config).
+ */
+import Base from "./Base.astro";
+import { DIRECTORY_INDEXABLE } from "../lib/directory/config";
+import { jsonLdString } from "../lib/directory/jsonLd";
+
+interface Props {
+  title: string;
+  description: string;
+  crumbs?: ReadonlyArray<{ label: string; href?: string }>;
+  structured?: Record<string, unknown>;
+}
+const { title, description, crumbs = [], structured } = Astro.props;
+---
+
+<Base title={title} description={description} noindex={!DIRECTORY_INDEXABLE}>
+  {structured && <script slot="head" type="application/ld+json" set:html={jsonLdString(structured)} />}
+  <article class="v-container directory">
+    {
+      crumbs.length > 0 && (
+        <nav class="crumbs" aria-label="Breadcrumb">
+          <ol>
+            {crumbs.map((c) => (
+              <li>{c.href ? <a href={c.href}>{c.label}</a> : <span aria-current="page">{c.label}</span>}</li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+    <slot />
+  </article>
+</Base>
+
+<style>
+  .directory {
+    max-width: calc(880px + 2 * var(--page-gutter));
+    padding-block: var(--s12) 0;
+  }
+  .crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s2);
+    list-style: none;
+    margin: 0 0 var(--s5);
+    padding: 0;
+    font-size: var(--t-ui-meta);
+    color: var(--v-text-secondary);
+  }
+  .crumbs li + li::before {
+    content: "›";
+    margin-right: var(--s2);
+    color: var(--v-text-tertiary);
+  }
+  .crumbs a {
+    color: var(--v-text-secondary);
+    text-decoration: none;
+  }
+  .crumbs a:hover {
+    color: var(--v-text-primary);
+  }
+  .directory :global(.dx-title) {
+    font-size: var(--t-h1);
+    letter-spacing: -0.02em;
+  }
+  .directory :global(.dx-sub) {
+    margin-top: var(--s2);
+    color: var(--v-text-secondary);
+  }
+  .directory :global(.dx-sub a) {
+    color: inherit;
+  }
+  .directory :global(.dx-lede) {
+    margin-top: var(--s5);
+    font-size: var(--t-ui-large);
+    line-height: 1.6;
+    max-width: 40rem;
+  }
+</style>

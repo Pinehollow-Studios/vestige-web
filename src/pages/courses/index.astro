@@ -1,0 +1,233 @@
+---
+/**
+ * The directory's front door: search every course by name or county, or
+ * browse by style, county and list. The search filters in the page (the
+ * course names arrive with it); a ?q= from the homepage search fills it in.
+ * Without JavaScript the browse links still reach every course.
+ */
+import Directory from "../../layouts/Directory.astro";
+import Section from "../../components/directory/Section.astro";
+import Rows from "../../components/directory/Rows.astro";
+import AppPrompt from "../../components/directory/AppPrompt.astro";
+import { loadDirectory } from "../../lib/directory/data";
+import { byName, formatNumber, plural, styleLabel, styleSlug } from "../../lib/directory/format";
+import { DIRECTORY_COVERAGE } from "../../lib/directory/config";
+
+const { courses, counties, lists } = await loadDirectory();
+const countyNames = counties.map((c) => c.name);
+const countyIndex = new Map(counties.map((c, i) => [c.slug, i]));
+const searchRows = [...courses].sort(byName).map((c) => [c.name, c.slug, countyIndex.get(c.county_slug) ?? -1]);
+
+const styles = new Map<string, { label: string; count: number }>();
+for (const c of courses) {
+  if (!c.style) continue;
+  const slug = styleSlug(c.style);
+  const s = styles.get(slug) ?? { label: styleLabel(c.style) ?? c.style, count: 0 };
+  s.count += 1;
+  styles.set(slug, s);
+}
+const styleRows = [...styles].sort((a, b) => b[1].count - a[1].count);
+const listRows = [...lists].sort((a, b) => b.course_count - a.course_count || byName(a, b));
+---
+
+<Directory
+  title={`Golf courses in ${DIRECTORY_COVERAGE}`}
+  description={`Every golf course in ${DIRECTORY_COVERAGE}, ${formatNumber(courses.length)} of them, with the facts for each. Search by name or browse by county, style and list.`}
+>
+  <h1 class="dx-title">Every course, one place.</h1>
+  <p class="dx-sub">{plural(courses.length, "course", "courses")} in {DIRECTORY_COVERAGE}, with Scotland and Wales on the way.</p>
+  <p class="dx-lede">
+    The facts for every course: holes, par, yards, style and the year it was founded. Search by
+    name, or browse by county, style or list.
+  </p>
+
+  <div class="search" data-search>
+    <form role="search" action="/courses" method="get">
+      <label class="v-visually-hidden" for="dx-q">Find a course</label>
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20">
+        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"></circle>
+        <path d="m20 20-3.6-3.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+      </svg>
+      <input id="dx-q" name="q" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Course name or county" />
+    </form>
+    <p class="v-meta status" role="status" aria-live="polite" data-status></p>
+    <ul class="results" data-results></ul>
+    <script type="application/json" data-courses set:html={JSON.stringify({ rows: searchRows, counties: countyNames })} />
+  </div>
+
+  <Section title="By county" note={`All ${counties.length} counties, A to Z.`}>
+    <Rows
+      columns={2}
+      rows={[...counties].sort(byName).map((c) => ({
+        href: c.course_count > 0 ? `/courses/county/${c.slug}` : undefined,
+        name: c.name,
+        end: formatNumber(c.course_count),
+      }))}
+    />
+  </Section>
+
+  <Section title="By style">
+    <Rows rows={styleRows.map(([slug, s]) => ({ href: `/courses/style/${slug}`, name: s.label, end: formatNumber(s.count) }))} />
+  </Section>
+
+  {listRows.length > 0 && (
+    <Section title="Curated lists">
+      <Rows
+        rows={listRows.map((l) => ({
+          href: `/courses/list/${l.slug}`,
+          name: l.name,
+          meta: `${plural(l.course_count, "course", "courses")}${l.is_ordered ? ", in order" : ""}`,
+        }))}
+      />
+    </Section>
+  )}
+
+  <AppPrompt heading="Played any? Put them on your map." />
+</Directory>
+
+<script>
+  const MAX = 12;
+  const normalise = (s: string) =>
+    s
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/&/g, " and ")
+      .replace(/['’]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-search]")) {
+    const data = JSON.parse(root.querySelector("[data-courses]")!.textContent!) as {
+      rows: Array<[string, string, number]>;
+      counties: string[];
+    };
+    const index = data.rows.map(([name, slug, c]) => ({
+      name,
+      slug,
+      county: data.counties[c] ?? "",
+      key: normalise(name),
+      hay: `${normalise(name)} ${normalise(data.counties[c] ?? "")}`,
+    }));
+    const input = root.querySelector<HTMLInputElement>("input")!;
+    const form = root.querySelector<HTMLFormElement>("form")!;
+    const status = root.querySelector<HTMLElement>("[data-status]")!;
+    const list = root.querySelector<HTMLElement>("[data-results]")!;
+    let top: string | null = null;
+
+    const render = () => {
+      const q = normalise(input.value);
+      list.replaceChildren();
+      top = null;
+      if (!q) {
+        status.textContent = "";
+        return;
+      }
+      const tokens = q.split(" ");
+      const found = index
+        .filter((r) => tokens.every((t) => r.hay.includes(t)))
+        .map((r) => ({ r, score: r.key.startsWith(q) ? 0 : r.key.split(" ").some((w) => w.startsWith(tokens[0])) ? 1 : 2 }))
+        .sort((a, b) => a.score - b.score || a.r.name.localeCompare(b.r.name, "en-GB"))
+        .map((x) => x.r);
+      status.textContent =
+        found.length === 0
+          ? `No course matches “${input.value.trim()}”.`
+          : found.length > MAX
+            ? `The first ${MAX} of ${found.length.toLocaleString("en-GB")} matches.`
+            : `${found.length} ${found.length === 1 ? "match" : "matches"}.`;
+      top = found[0]?.slug ?? null;
+      for (const r of found.slice(0, MAX)) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = `/courses/${r.slug}`;
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = r.name;
+        const meta = document.createElement("span");
+        meta.className = "meta";
+        meta.textContent = r.county;
+        a.append(name, meta);
+        li.append(a);
+        list.append(li);
+      }
+    };
+
+    input.addEventListener("input", render);
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (top) location.href = `/courses/${top}`;
+    });
+    const q = new URLSearchParams(location.search).get("q");
+    if (q) {
+      input.value = q.slice(0, 80);
+      render();
+    }
+  }
+</script>
+
+<style>
+  .search {
+    margin-top: var(--s7);
+  }
+  form {
+    display: flex;
+    align-items: center;
+    gap: var(--s3);
+    padding: 0 var(--s5);
+    background: var(--v-surface-raised);
+    box-shadow: var(--card-edge);
+    border-radius: var(--r-pill);
+    color: var(--v-text-secondary);
+  }
+  form:focus-within {
+    outline: 2px solid var(--v-accent-ink);
+    outline-offset: 2px;
+  }
+  input {
+    flex: 1;
+    min-width: 0;
+    min-height: 56px;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font: inherit;
+    font-size: 17px;
+    color: var(--v-text-primary);
+  }
+  .status {
+    margin-top: var(--s3);
+  }
+  .status:empty {
+    display: none;
+  }
+  .results {
+    list-style: none;
+    margin: var(--s3) 0 0;
+    padding: 0;
+    background: var(--v-surface-raised);
+    box-shadow: var(--card-edge);
+    border-radius: var(--r-xl);
+  }
+  .results:empty {
+    display: none;
+  }
+  .results :global(li + li a) {
+    border-top: 1px solid var(--v-separator);
+  }
+  .results :global(a) {
+    display: grid;
+    gap: 2px;
+    margin: 0 var(--s5);
+    padding: var(--s3) 0;
+    text-decoration: none;
+    color: var(--v-text-primary);
+  }
+  .results :global(.name) {
+    font-weight: 600;
+    font-size: var(--t-ui-body);
+  }
+  .results :global(.meta) {
+    font-size: var(--t-ui-meta);
+    color: var(--v-text-secondary);
+  }
+</style>

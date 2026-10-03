@@ -1,0 +1,212 @@
+---
+/**
+ * Signature scene one: the map of Britain filling in as you scroll.
+ * England's 47 counties turn mint one by one, south to north (the order
+ * the course database was built in), and a counter climbs to 47. Scotland
+ * and Wales sit beside it, marked as next.
+ *
+ * Pure CSS: a scroll-driven animation on a view timeline, no JavaScript.
+ * Without support for scroll-driven animations, or with reduced motion
+ * asked for, the map simply shows its finished state.
+ */
+import { COUNTY_SHAPES, COUNTY_VIEW } from "../../data/counties";
+import { COUNTRY_SHAPES } from "../../data/countries";
+import { progressConfig, COUNTIES_TOTAL } from "../../data/progressConfig";
+
+// South to north, as the database was built.
+const counties = [...COUNTY_SHAPES].sort((a, b) => b.cy - a.cy);
+const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
+---
+
+<section class="map-scene" aria-labelledby="map-title">
+  <div class="sticky">
+    <div class="v-container layout">
+      <div class="copy">
+        <p class="v-label">The map so far</p>
+        <h2 id="map-title">England, done. Every last course.</h2>
+        <p class="v-lead">
+          All {courses} golf courses in England are on the map, from Open venues to the nine-holer
+          behind the leisure centre. Scotland and Wales are next.
+        </p>
+        <p class="tally" aria-hidden="true">
+          <span class="count v-hero-numeral"><span class="static">{COUNTIES_TOTAL}</span></span>
+          <span class="v-meta">of {COUNTIES_TOTAL} counties mapped</span>
+        </p>
+        <p class="v-visually-hidden">All {COUNTIES_TOTAL} counties of England are mapped.</p>
+      </div>
+      <figure class="map">
+        <svg
+          viewBox={`0 0 ${COUNTY_VIEW.w} ${COUNTY_VIEW.h}`}
+          role="img"
+          aria-label={`Map of Great Britain with all ${COUNTIES_TOTAL} English counties filled in, and Scotland and Wales still to come.`}
+        >
+          <g class="next">
+            {COUNTRY_SHAPES.map((c) => <path d={c.d} fill-rule="evenodd" />)}
+            {
+              COUNTRY_SHAPES.map((c) => (
+                <text x={c.lx} y={c.ly} text-anchor="middle">
+                  {c.name}, next
+                </text>
+              ))
+            }
+          </g>
+          <g class="counties">
+            {
+              counties.map((s, i) => (
+                <path
+                  d={s.d}
+                  fill-rule="evenodd"
+                  style={`--o: ${((i / counties.length) * 78).toFixed(2)}%`}
+                />
+              ))
+            }
+          </g>
+        </svg>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  @property --filled {
+    syntax: "<integer>";
+    inherits: true;
+    initial-value: 47;
+  }
+
+  .map-scene {
+    position: relative;
+    view-timeline-name: --map;
+    view-timeline-axis: block;
+  }
+  .sticky {
+    padding-block: var(--section-gap);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    align-items: center;
+    gap: var(--s12);
+  }
+  .copy {
+    display: grid;
+    gap: var(--s4);
+    align-content: center;
+  }
+  .tally {
+    display: flex;
+    align-items: baseline;
+    gap: var(--s3);
+    margin-top: var(--s4);
+  }
+  .count {
+    color: var(--v-accent-ink);
+  }
+  .map {
+    margin: 0;
+    padding: var(--s6);
+    background: var(--v-surface-raised);
+    box-shadow: var(--card-edge);
+    border-radius: var(--r-xxl);
+  }
+  .map svg {
+    width: 100%;
+    max-height: 78svh;
+  }
+  .counties path {
+    fill: var(--v-accent);
+    stroke: var(--v-surface-raised);
+    stroke-width: 0.8;
+    stroke-linejoin: round;
+  }
+  .next path {
+    fill: var(--v-fill-soft);
+    stroke: var(--v-surface-raised);
+    stroke-width: 0.8;
+  }
+  .next text {
+    font-family: var(--font-ui);
+    font-size: 10px;
+    font-weight: 600;
+    fill: var(--v-text-secondary);
+  }
+
+  /* The scroll story, where the browser can tell it. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .map-scene {
+        height: 260vh;
+      }
+      .sticky {
+        position: sticky;
+        top: 0;
+        min-height: 100svh;
+        display: grid;
+        align-items: center;
+        padding-block: var(--s16) var(--s12);
+      }
+      .counties path {
+        fill: var(--v-fill-soft);
+        animation: county-fill linear both;
+        animation-timeline: --map;
+        animation-range: contain var(--o) contain calc(var(--o) + 6%);
+      }
+      .count .static {
+        display: none;
+      }
+      .count {
+        counter-reset: filled var(--filled);
+        animation: count-up linear both;
+        animation-timeline: --map;
+        animation-range: contain 0% contain 84%;
+      }
+      .count::after {
+        content: counter(filled);
+      }
+    }
+  }
+
+  @keyframes county-fill {
+    0% {
+      fill: var(--v-fill-soft);
+    }
+    40% {
+      fill: var(--v-ramp-moss);
+    }
+    70% {
+      fill: var(--v-ramp-pine);
+    }
+    100% {
+      fill: var(--v-accent);
+    }
+  }
+  @keyframes count-up {
+    from {
+      --filled: 0;
+    }
+    to {
+      --filled: 47;
+    }
+  }
+
+  @media (max-width: 860px) {
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s4);
+    }
+    /* On a phone the copy and the map share one screen while it pins. */
+    .copy .v-lead {
+      font-size: var(--t-ui-body);
+    }
+    .tally {
+      margin-top: 0;
+    }
+    .map {
+      padding: var(--s4);
+    }
+    .map svg {
+      max-height: 42svh;
+      margin-inline: auto;
+    }
+  }
+</style>

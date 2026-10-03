@@ -1,0 +1,56 @@
+---
+/**
+ * A simple line sketch of a golf hole: tee, a dog-legging fairway, two
+ * bunkers, the green and its flag. Drawn in a single stroke colour so it
+ * reads as a pencil sketch on the page, never as a diagram.
+ */
+interface Props {
+  class?: string;
+  label?: string;
+}
+const { class: className, label } = Astro.props;
+---
+
+<svg
+  class:list={["hole-sketch", className]}
+  viewBox="0 0 220 320"
+  role={label ? "img" : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : "true"}
+>
+  <path
+    class="fairway"
+    d="M98 300c-14-30-20-62-12-96 8-34 30-56 34-88 3-26-10-46-6-66 3-18 20-30 40-32"
+  ></path>
+  <path
+    class="edge"
+    d="M70 296c-16-34-18-70-8-104 10-34 30-54 32-84 2-24-12-44-6-64M128 302c-10-32-12-66-2-98 10-34 32-56 36-88 3-26-6-44 2-62"
+  ></path>
+  <ellipse class="bunker" cx="62" cy="150" rx="13" ry="8" transform="rotate(-20 62 150)"></ellipse>
+  <ellipse class="bunker" cx="176" cy="74" rx="11" ry="7" transform="rotate(25 176 74)"></ellipse>
+  <ellipse class="green" cx="152" cy="46" rx="24" ry="18"></ellipse>
+  <path class="flag" d="M154 46V16l16 6-16 6"></path>
+  <rect class="tee" x="88" y="300" width="22" height="10" rx="3"></rect>
+</svg>
+
+<style>
+  .hole-sketch {
+    width: 100%;
+    height: auto;
+    fill: none;
+    stroke: var(--v-ramp-pine);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .fairway {
+    stroke-dasharray: 3 6;
+    opacity: 0.7;
+  }
+  .bunker {
+    stroke: var(--v-list-sand);
+  }
+  .flag {
+    stroke: var(--v-alert);
+  }
+</style>

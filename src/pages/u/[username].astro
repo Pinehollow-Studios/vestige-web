@@ -1,0 +1,17 @@
+---
+/** Web fallback for a profile link, vestige.golf/u/<username>. */
+import LinkLanding from "../../components/LinkLanding.astro";
+import { site } from "../../config/site";
+
+export const prerender = false;
+
+const handle = decodeURIComponent(Astro.params.username ?? "").replace(/^@+/, "").slice(0, 40);
+---
+
+<LinkLanding
+  title={`@${handle}`}
+  description={`@${handle} is keeping their golf collection on ${site.name}.`}
+  label={site.name}
+  headline={`@${handle}`}
+  blurb={`is keeping their golf collection on ${site.name}. ${site.tagline}`}
+/>

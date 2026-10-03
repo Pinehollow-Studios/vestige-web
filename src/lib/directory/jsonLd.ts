@@ -7,7 +7,7 @@
  * user reviews, and marking it up as one would misrepresent it.
  */
 
-import { absoluteUrl } from "./config";
+import { absoluteUrl } from "./urls";
 import type { CourseSummary, DirectoryCourse } from "./types";
 
 type Json = Record<string, unknown>;

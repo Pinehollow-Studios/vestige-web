@@ -1,0 +1,26 @@
+---
+/**
+ * The homepage (release 1, step 2 - for review on staging). Photo-led and
+ * light: the hero with course search, the map filling in, real courses
+ * from our own rounds, how it works, lists, friends and the 1.0 signup.
+ */
+import Base from "../layouts/Base.astro";
+import PhotoHero from "../components/home/PhotoHero.astro";
+import MapScene from "../components/home/MapScene.astro";
+import PhotoMosaic from "../components/home/PhotoMosaic.astro";
+import HowItWorks from "../components/home/HowItWorks.astro";
+import Collections from "../components/home/Collections.astro";
+import Friends from "../components/home/Friends.astro";
+import Signup from "../components/home/Signup.astro";
+import { photos } from "../data/photos";
+---
+
+<Base>
+  <PhotoHero photo={photos.fairwayShadows} />
+  <MapScene />
+  <PhotoMosaic />
+  <HowItWorks />
+  <Collections />
+  <Friends />
+  <Signup />
+</Base>
