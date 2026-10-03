@@ -1,0 +1,863 @@
+---
+/**
+ * /clubs - Vestige for clubs (docs/clubs-plan.md).
+ *
+ * The one priced thing on the page is free: claiming a course page. Everything
+ * else is outcomes, not products, and "talk to us": no prices, no data
+ * products named, no audience numbers we can't stand behind, and a plain
+ * promise that clubs never see individual golfers.
+ *
+ * Prerendered. The enquiry form posts to /api/enquire (a fetch with
+ * JavaScript, a plain post without); the club field looks courses up through
+ * /api/search as you type.
+ */
+import { Picture } from "astro:assets";
+import Base from "../../layouts/Base.astro";
+import PhoneFrame from "../../components/PhoneFrame.astro";
+import { caption, photos } from "../../data/photos";
+import { screens } from "../../data/screens";
+import { progressConfig } from "../../data/progressConfig";
+import { CLAIM_ROLES, ENQUIRY_INTERESTS } from "../../lib/clubs";
+
+const hero = photos.pineRidge;
+const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
+
+const golfers = [
+  {
+    screen: screens.homeMap,
+    title: "They collect courses",
+    body: "Every round goes on their map and fills in a county. The aim is simple: more of them.",
+  },
+  {
+    screen: screens.listTop100,
+    title: "They work through lists",
+    body: "The Top 100, the Open rotation, the best in their county. A list is a reason to plan a trip.",
+  },
+  {
+    screen: screens.feedRound,
+    title: "They play together",
+    body: "Friends see where each other has been, and that is usually where they want to go next.",
+  },
+];
+
+const building = [
+  {
+    title: "More of the right visitors",
+    body: "Golfers on Vestige travel to collect courses. We want the ones who’d love yours to find it.",
+  },
+  {
+    title: "A place on the lists",
+    body: "Lists give golfers a reason to come. We’re working out how clubs can take part.",
+  },
+  {
+    title: "A clearer picture",
+    body: "A sense of who wants to play you and when, built from many golfers and never from one.",
+  },
+];
+
+const faqs = [
+  {
+    q: "Does any of this cost anything?",
+    a: "Claiming your course page is free, and so is talking to us. Anything beyond that, we’ll talk through with you first.",
+  },
+  {
+    q: "Will we see our golfers’ details?",
+    a: "No. Clubs never see individual golfers, their rounds or their lists. Anything we share with clubs is aggregated and anonymous.",
+  },
+  {
+    q: "When does this start?",
+    a: "Vestige 1.0 is out in January 2027. We’re talking to clubs now about what comes after.",
+  },
+  {
+    q: "Who are you?",
+    a: "Vestige is made by Jack and Tom at Pinehollow Studios, a small company in Suffolk. Jack looks after the courses; Tom builds the app.",
+  },
+  {
+    q: "Our course is missing, or something on its page is wrong.",
+    a: `Every course in England is on the map (${courses} of them), with Scotland and Wales on the way. If yours is missing or wrong, tell us in the form below.`,
+  },
+];
+---
+
+<Base
+  title="For clubs"
+  description="Golfers use Vestige to collect every course they’ve played. Claim your course page for free, or talk to us about what we’re building with clubs."
+>
+  <section class="hero" aria-labelledby="clubs-title">
+    <Picture
+      src={hero.src}
+      alt={hero.alt}
+      formats={["avif", "webp"]}
+      widths={[640, 960, 1280, 1920, 2560]}
+      sizes="100vw"
+      loading="eager"
+      fetchpriority="high"
+      class="hero-photo"
+    />
+    <div class="scrim" aria-hidden="true"></div>
+    <div class="v-container hero-content">
+      <p class="hero-kicker">For clubs</p>
+      <h1 id="clubs-title">Your course, on the map golfers are filling in.</h1>
+      <p class="hero-lead">
+        Golfers use Vestige to collect every course they’ve played, county by county. Claiming your course
+        page is free. For everything else, we’d like to hear from you.
+      </p>
+      <div class="hero-actions">
+        <a class="v-button v-button--primary" href="/clubs/claim">Claim your course, free</a>
+        <a class="v-button on-photo" href="#enquire">Talk to us</a>
+      </div>
+    </div>
+    <p class="credit">{caption(hero)}</p>
+  </section>
+
+  <section class="v-container section" aria-labelledby="golfers-title">
+    <p class="v-kicker">The golfers</p>
+    <h2 id="golfers-title" class="v-display">What golfers do on Vestige.</h2>
+    <ul class="beats">
+      {
+        golfers.map((g) => (
+          <li class="beat">
+            <PhoneFrame screen={g.screen} maxWidth={220} class="beat-phone" />
+            <h3>{g.title}</h3>
+            <p>{g.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section class="v-band claim" aria-labelledby="claim-title">
+    <div class="v-container claim-grid">
+      <div class="claim-copy">
+        <p class="v-kicker">Free, no contract</p>
+        <h2 id="claim-title" class="v-display">Claim your course page.</h2>
+        <p class="v-lead">
+          Every course in England already has a page on Vestige. Claim yours and it takes a minute: use your
+          club email and it’s instant.
+        </p>
+        <ul class="perks">
+          <li><strong>A “Claimed by the club” mark</strong> so golfers know the page is looked after.</li>
+          <li><strong>A say in what it says.</strong> Suggest changes and our editor makes them.</li>
+          <li><strong>A badge for your website</strong> that sends golfers to your page.</li>
+        </ul>
+        <form class="find" action="/clubs/claim" method="get" role="search">
+          <label class="v-visually-hidden" for="find-q">Find your course</label>
+          <input class="v-input" id="find-q" name="q" placeholder="Find your course" required minlength="2" />
+          <button class="v-button v-button--secondary" type="submit">Find it</button>
+        </form>
+      </div>
+      <figure class="preview" aria-label="What a claimed page shows">
+        <div class="preview-card v-card">
+          <p class="v-kicker">Heathland in Surrey</p>
+          <p class="preview-name">Hankley Common Golf Club</p>
+          <p class="preview-claimed">
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true">
+              <circle cx="10" cy="10" r="10" />
+              <path d="m5.8 10.3 2.7 2.7 5.7-6" />
+            </svg>
+            Claimed by the club
+          </p>
+        </div>
+        <div class="preview-badge">
+          <img src="/badges/collect-us-on-vestige.png" width="192" height="68" alt="The Collect us on Vestige badge" />
+          <figcaption class="v-meta">The badge, for your website</figcaption>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="v-container section" aria-labelledby="building-title">
+    <p class="v-kicker">What’s next</p>
+    <h2 id="building-title" class="v-display">What we’re building with clubs.</h2>
+    <ul class="building">
+      {
+        building.map((b) => (
+          <li class="v-card">
+            <h3>{b.title}</h3>
+            <p>{b.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="first v-card">
+      <div>
+        <h3>Be one of the first.</h3>
+        <p>
+          We’re talking to a small number of clubs ahead of 1.0 about what we build next. If you’d like to be
+          one of them, say so below.
+        </p>
+      </div>
+      <a class="v-button v-button--secondary" href="#enquire">Talk to us</a>
+    </div>
+  </section>
+
+  <section class="v-container promise" aria-labelledby="promise-title">
+    <div class="promise-inner">
+      <h2 id="promise-title">Our promise to golfers, and to you.</h2>
+      <p>
+        Golfers trust us with where they’ve played. Clubs never see individual golfers: anything we share is
+        aggregated and anonymous. And there are no ads in Vestige, ever.
+      </p>
+    </div>
+  </section>
+
+  <section class="v-band enquire" id="enquire" aria-labelledby="enquire-title">
+    <div class="v-container enquire-grid">
+      <div class="enquire-copy">
+        <p class="v-kicker">Talk to us</p>
+        <h2 id="enquire-title" class="v-display">Tell us about your club.</h2>
+        <p class="v-lead">It comes straight to Jack and Tom, and one of us will reply within two working days.</p>
+        <div class="faq">
+          {
+            faqs.map((f) => (
+              <details>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))
+          }
+        </div>
+      </div>
+
+      <form class="v-card v-form enquiry" method="post" action="/api/enquire" data-enquiry novalidate>
+        <p class="v-alert" role="alert" data-error hidden></p>
+        <div class="v-field club-field">
+          <label for="e-club">Your club</label>
+          <input
+            class="v-input"
+            id="e-club"
+            name="club"
+            autocomplete="off"
+            required
+            maxlength="160"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="e-club-list"
+            aria-autocomplete="list"
+            data-club
+          />
+          <input type="hidden" name="course" data-course />
+          <ul class="suggestions" id="e-club-list" role="listbox" data-suggestions hidden></ul>
+        </div>
+        <div class="two">
+          <div class="v-field">
+            <label for="e-name">Your name</label>
+            <input class="v-input" id="e-name" name="name" autocomplete="name" required maxlength="120" />
+          </div>
+          <div class="v-field">
+            <label for="e-role">Your role</label>
+            <select class="v-select" id="e-role" name="role" required>
+              <option value="" selected disabled>Choose one</option>
+              {CLAIM_ROLES.map((r) => <option>{r}</option>)}
+            </select>
+          </div>
+        </div>
+        <div class="two">
+          <div class="v-field">
+            <label for="e-email">Work email</label>
+            <input class="v-input" id="e-email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="254" />
+          </div>
+          <div class="v-field">
+            <label for="e-phone">Phone <span class="optional">(optional)</span></label>
+            <input class="v-input" id="e-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" />
+          </div>
+        </div>
+        <fieldset class="v-field interests">
+          <legend class="v-field-label">What would you like to talk about?</legend>
+          {
+            ENQUIRY_INTERESTS.map((i) => (
+              <label class="v-check">
+                <input type="checkbox" name="interests" value={i} />
+                <span>{i}</span>
+              </label>
+            ))
+          }
+        </fieldset>
+        <div class="v-field">
+          <label for="e-message">Anything else <span class="optional">(optional)</span></label>
+          <textarea class="v-textarea" id="e-message" name="message" maxlength="4000"></textarea>
+        </div>
+        <label class="v-check">
+          <input type="checkbox" name="updates" value="yes" />
+          <span>Send me the occasional update about Vestige for clubs.</span>
+        </label>
+        <div class="v-honeypot" aria-hidden="true">
+          <label for="e-website">Leave this empty</label>
+          <input id="e-website" name="website" tabindex="-1" autocomplete="off" />
+        </div>
+        <input type="hidden" name="started" data-started />
+        <button class="v-button v-button--secondary send" type="submit">Send</button>
+        <p class="v-meta">
+          We use these details only to reply to you and keep a record of it, and never share them. See our
+          <a href="/privacy">privacy policy</a>.
+        </p>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<script>
+  type Result = { name: string; slug: string; county: string };
+  const MESSAGES: Record<string, string> = {
+    missing: "Fill in your name, your club, your role and your email.",
+    email: "That doesn’t look like an email address.",
+    too_many: "That address has sent several enquiries today. We’ll be in touch about the first.",
+    busy: "Too many tries in a minute. Give it a moment and send it again.",
+    error: "Something went wrong on our side. Try again in a minute, or email hello@pinehollow.studio.",
+  };
+
+  for (const form of document.querySelectorAll<HTMLFormElement>("[data-enquiry]")) {
+    const started = form.querySelector<HTMLInputElement>("[data-started]")!;
+    started.value = String(Date.now());
+    const errorBox = form.querySelector<HTMLElement>("[data-error]")!;
+    const showError = (text: string) => {
+      errorBox.textContent = text;
+      errorBox.hidden = false;
+      errorBox.scrollIntoView({ block: "center", behavior: "smooth" });
+    };
+    const fromUrl = new URLSearchParams(location.search).get("error");
+    if (fromUrl) showError(MESSAGES[fromUrl] ?? MESSAGES.error);
+
+    // The club field: suggestions from the directory as you type.
+    const club = form.querySelector<HTMLInputElement>("[data-club]")!;
+    const course = form.querySelector<HTMLInputElement>("[data-course]")!;
+    const list = form.querySelector<HTMLUListElement>("[data-suggestions]")!;
+    let timer = 0;
+    let ticket = 0;
+    let active = -1;
+    const close = () => {
+      list.hidden = true;
+      club.setAttribute("aria-expanded", "false");
+      active = -1;
+    };
+    const choose = (r: Result) => {
+      club.value = r.name;
+      course.value = r.slug;
+      close();
+    };
+    const highlight = (i: number) => {
+      const items = [...list.children] as HTMLElement[];
+      items.forEach((li, n) => li.setAttribute("aria-selected", String(n === i)));
+      active = i;
+    };
+    club.addEventListener("input", () => {
+      course.value = "";
+      clearTimeout(timer);
+      const q = club.value.trim();
+      if (q.length < 2) return close();
+      timer = window.setTimeout(async () => {
+        const mine = ++ticket;
+        try {
+          const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+          const body = await res.json();
+          if (mine !== ticket || !res.ok) return;
+          list.replaceChildren();
+          for (const r of (body.results as Result[]).slice(0, 6)) {
+            const li = document.createElement("li");
+            li.setAttribute("role", "option");
+            const name = document.createElement("span");
+            name.textContent = r.name;
+            const county = document.createElement("span");
+            county.className = "county";
+            county.textContent = r.county;
+            li.append(name, county);
+            li.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+              choose(r);
+            });
+            list.append(li);
+          }
+          const any = list.children.length > 0;
+          list.hidden = !any;
+          club.setAttribute("aria-expanded", String(any));
+          active = -1;
+          (list as HTMLUListElement & { results?: Result[] }).results = body.results.slice(0, 6);
+        } catch {
+          close();
+        }
+      }, 160);
+    });
+    club.addEventListener("keydown", (e) => {
+      const results = (list as HTMLUListElement & { results?: Result[] }).results ?? [];
+      if (list.hidden || !results.length) return;
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        highlight(Math.min(active + 1, results.length - 1));
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        highlight(Math.max(active - 1, 0));
+      } else if (e.key === "Enter" && active >= 0) {
+        e.preventDefault();
+        choose(results[active]);
+      } else if (e.key === "Escape") {
+        close();
+      }
+    });
+    club.addEventListener("blur", () => setTimeout(close, 120));
+
+    // Send with fetch; a plain post still works without JavaScript.
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorBox.hidden = true;
+      if (!form.reportValidity()) return;
+      const button = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
+      button.disabled = true;
+      button.textContent = "Sending…";
+      try {
+        const res = await fetch(form.action, {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" },
+        });
+        const body = await res.json().catch(() => ({}));
+        if (res.ok && body.ok) {
+          location.href = "/clubs/thanks";
+          return;
+        }
+        showError(body.error ?? MESSAGES.error);
+      } catch {
+        showError(MESSAGES.error);
+      }
+      button.disabled = false;
+      button.textContent = "Send";
+    });
+  }
+</script>
+
+<style>
+  /* ---- Hero ------------------------------------------------------------ */
+  .hero {
+    position: relative;
+    isolation: isolate;
+    min-height: min(86svh, 760px);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    color: var(--v-on-photo);
+  }
+  .hero :global(.hero-photo) {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 46%;
+  }
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(
+        to top,
+        color-mix(in srgb, var(--v-on-photo-scrim) 70%, transparent) 0%,
+        color-mix(in srgb, var(--v-on-photo-scrim) 34%, transparent) 50%,
+        transparent 80%
+      ),
+      linear-gradient(
+        to right,
+        color-mix(in srgb, var(--v-on-photo-scrim) 34%, transparent) 0%,
+        transparent 60%
+      );
+  }
+  .hero-content {
+    padding-block: var(--s32) var(--s16);
+    display: grid;
+    justify-items: start;
+    gap: var(--s5);
+  }
+  .hero-kicker {
+    margin: 0;
+    font-size: var(--t-ui-body);
+    font-weight: 600;
+    color: color-mix(in srgb, var(--v-on-photo) 88%, transparent);
+  }
+  .hero h1 {
+    max-width: 15ch;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.8rem, 1.6rem + 5vw, 5.4rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  .hero-lead {
+    max-width: 36rem;
+    margin: 0;
+    font-size: var(--t-editorial);
+    line-height: 1.55;
+    color: color-mix(in srgb, var(--v-on-photo) 92%, transparent);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+    margin-top: var(--s2);
+  }
+  .on-photo {
+    border-color: color-mix(in srgb, var(--v-on-photo) 55%, transparent);
+    color: var(--v-on-photo);
+    background: color-mix(in srgb, var(--v-on-photo-scrim) 24%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .on-photo:hover {
+    background: color-mix(in srgb, var(--v-on-photo-scrim) 40%, transparent);
+  }
+  .credit {
+    position: absolute;
+    right: var(--page-gutter);
+    bottom: var(--s5);
+    margin: 0;
+    font-size: var(--t-ui-meta);
+    color: color-mix(in srgb, var(--v-on-photo) 80%, transparent);
+  }
+
+  /* ---- Sections ------------------------------------------------------- */
+  .section {
+    padding-block: var(--section-gap);
+  }
+  .section .v-display,
+  .v-band .v-display {
+    margin-top: var(--s2);
+    max-width: 18ch;
+  }
+
+  .beats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s12);
+    margin: var(--s12) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .beat {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: var(--s3);
+  }
+  .beat :global(.beat-phone) {
+    width: min(220px, 70%);
+    margin-bottom: var(--s5);
+  }
+  .beat h3 {
+    font-size: var(--t-h3);
+  }
+  .beat p {
+    margin: 0;
+    max-width: 22rem;
+    color: var(--v-text-secondary);
+  }
+
+  /* ---- Claim band ----------------------------------------------------- */
+  .claim-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: var(--s16);
+    align-items: center;
+  }
+  .claim-copy {
+    display: grid;
+    justify-items: start;
+    gap: var(--s4);
+  }
+  .claim-copy .v-lead {
+    margin: 0;
+  }
+  .perks {
+    display: grid;
+    gap: var(--s3);
+    margin: var(--s2) 0;
+    padding: 0;
+    list-style: none;
+    color: var(--v-text-secondary);
+  }
+  .perks li {
+    position: relative;
+    padding-left: var(--s7);
+  }
+  .perks li::before {
+    content: "";
+    position: absolute;
+    left: 4px;
+    top: 0.4em;
+    width: 11px;
+    height: 6px;
+    border-left: 2px solid var(--v-accent-ink);
+    border-bottom: 2px solid var(--v-accent-ink);
+    transform: rotate(-45deg);
+  }
+  .perks strong {
+    color: var(--v-text-primary);
+  }
+  .find {
+    display: flex;
+    gap: var(--s3);
+    width: min(100%, 30rem);
+  }
+  .find .v-input {
+    flex: 1;
+  }
+  .preview {
+    display: grid;
+    gap: var(--s5);
+    justify-items: center;
+    margin: 0;
+  }
+  .preview-card {
+    display: grid;
+    gap: var(--s2);
+    width: min(100%, 380px);
+    padding: var(--s7);
+  }
+  .preview-card .v-kicker {
+    margin: 0;
+  }
+  .preview-name {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--t-h2);
+    line-height: 1.1;
+  }
+  .preview-claimed {
+    display: inline-flex;
+    justify-self: start;
+    align-items: center;
+    gap: var(--s2);
+    margin: var(--s2) 0 0;
+    padding: var(--s1) var(--s3) var(--s1) var(--s2);
+    border-radius: var(--r-pill);
+    background: var(--v-accent-soft);
+    color: var(--v-accent-ink);
+    font-size: var(--t-ui-meta);
+    font-weight: 600;
+  }
+  .preview-claimed circle {
+    fill: var(--v-accent-ink);
+  }
+  .preview-claimed path {
+    fill: none;
+    stroke: var(--v-surface-raised);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .preview-badge {
+    display: grid;
+    justify-items: center;
+    gap: var(--s2);
+  }
+
+  /* ---- What's next ---------------------------------------------------- */
+  .building {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s4);
+    margin: var(--s12) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .building li {
+    display: grid;
+    align-content: start;
+    gap: var(--s2);
+    padding: var(--s7);
+  }
+  .building h3,
+  .first h3 {
+    font-size: var(--t-h3);
+  }
+  .building p,
+  .first p {
+    margin: 0;
+    color: var(--v-text-secondary);
+  }
+  .first {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s7);
+    margin-top: var(--s4);
+    padding: var(--s7);
+  }
+  .first > div {
+    display: grid;
+    gap: var(--s2);
+    max-width: 40rem;
+  }
+
+  .promise {
+    padding-bottom: var(--section-gap);
+  }
+  .promise-inner {
+    display: grid;
+    gap: var(--s3);
+    max-width: 46rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .promise h2 {
+    font-size: var(--t-h2);
+  }
+  .promise p {
+    margin: 0;
+    font-size: var(--t-editorial);
+    line-height: 1.6;
+    color: var(--v-text-secondary);
+  }
+
+  /* ---- Enquiry -------------------------------------------------------- */
+  .enquire-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: var(--s16);
+    align-items: start;
+  }
+  .enquire-copy {
+    display: grid;
+    gap: var(--s4);
+    position: sticky;
+    top: calc(64px + var(--s7));
+  }
+  .enquire-copy .v-lead {
+    margin: 0;
+  }
+  .faq {
+    display: grid;
+    margin: var(--s4) 0 0;
+    border-top: 1px solid var(--v-separator);
+  }
+  .faq details {
+    border-bottom: 1px solid var(--v-separator);
+  }
+  .faq summary {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding: var(--s4) 0;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq summary::after {
+    content: "+";
+    color: var(--v-text-tertiary);
+    font-weight: 400;
+  }
+  .faq details[open] summary::after {
+    content: "–";
+  }
+  .faq details p {
+    margin: 0 0 var(--s4);
+    color: var(--v-text-secondary);
+  }
+  .enquiry {
+    padding: var(--s7);
+  }
+  .two {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s4);
+  }
+  .optional {
+    font-weight: 400;
+    color: var(--v-text-tertiary);
+  }
+  .interests {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    gap: var(--s3);
+  }
+  .interests legend {
+    margin-bottom: var(--s3);
+    padding: 0;
+  }
+  .club-field {
+    position: relative;
+  }
+  .suggestions {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 3;
+    margin: var(--s1) 0 0;
+    padding: var(--s2);
+    list-style: none;
+    border-radius: var(--r-lg);
+    background: var(--v-surface-raised);
+    box-shadow:
+      var(--card-edge),
+      0 16px 32px -12px rgb(11 15 20 / 0.2);
+  }
+  .suggestions :global(li) {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--s4);
+    padding: var(--s3);
+    border-radius: var(--r-md);
+    cursor: pointer;
+  }
+  .suggestions :global(li:hover),
+  .suggestions :global(li[aria-selected="true"]) {
+    background: var(--v-fill-faint);
+  }
+  .suggestions :global(.county) {
+    color: var(--v-text-secondary);
+    font-size: var(--t-ui-meta);
+  }
+  .send {
+    justify-self: start;
+    min-width: 10rem;
+  }
+  .enquiry .v-meta a {
+    color: inherit;
+  }
+
+  /* ---- Narrow --------------------------------------------------------- */
+  @media (max-width: 960px) {
+    .claim-grid,
+    .enquire-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s12);
+    }
+    .enquire-copy {
+      position: static;
+    }
+    .building {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 760px) {
+    .beats {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--s16);
+    }
+    .first {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .two {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .find {
+      flex-direction: column;
+    }
+    .enquiry {
+      padding: var(--s6) var(--s5);
+    }
+    .hero-content {
+      padding-block: var(--s24) var(--s16);
+    }
+    .credit {
+      top: calc(64px + var(--s4));
+      bottom: auto;
+    }
+  }
+</style>

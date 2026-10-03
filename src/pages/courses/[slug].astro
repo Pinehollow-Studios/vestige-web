@@ -100,7 +100,7 @@ const appleMaps = hasPlace
   ? `https://maps.apple.com/?q=${encodeURIComponent(course.name)}&ll=${course.lat},${course.lng}`
   : null;
 const correction = `mailto:${site.email.hello}?subject=${encodeURIComponent(`Correction: ${course.name}`)}`;
-const talk = `mailto:${site.email.hello}?subject=${encodeURIComponent(`Working with Vestige: ${course.name}`)}`;
+const talk = "/clubs#enquire";
 
 const fallback = `${course.name} is a ${style?.toLowerCase() ?? "golf"} course in ${course.county_name}.`;
 const structured = graph([

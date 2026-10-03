@@ -53,7 +53,10 @@ export default defineConfig({
       // course directory until its indexing switch is on
       // (src/lib/directory/config.ts - flip both together), /beta (shared by
       // hand only) and the 404.
-      filter: (page) => !/\/(courses|beta|404)(\/|$)/.test(new URL(page).pathname),
+      filter: (page) => {
+        const path = new URL(page).pathname;
+        return !/\/(courses|beta|404)(\/|$)/.test(path) && !/^\/clubs\/(thanks|claim|manage)/.test(path);
+      },
     }),
   ],
   env: {

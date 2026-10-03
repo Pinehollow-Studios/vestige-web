@@ -1,9 +1,16 @@
 ---
 /**
  * The site header. It floats over the page, so it is chrome and may be
- * glass (design kit §8.4): one translucent fill, a hairline in light only.
- * The header's call to action is secondary; the gradient is reserved for
- * the page's own hero call to action.
+ * glass (design kit §8.4): one translucent fill and a hairline.
+ *
+ * Wide screens: the lockup on the left, the sections centred as pills (the
+ * current one filled, like the app's segmented controls), and the 1.0
+ * signup on the right as a secondary pill. The gradient stays reserved for
+ * each page's own call to action.
+ *
+ * Narrow screens: the lockup and a menu button. The menu is a <details>
+ * element, so it opens without JavaScript; a few lines of script close it on
+ * Escape, on a tap outside, and when the screen grows past the breakpoint.
  */
 import Lockup from "./Lockup.astro";
 import { nav } from "../config/site";
@@ -14,8 +21,9 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
 
 <header class="site-header">
   <div class="v-container bar">
-    <a class="home" href="/" aria-label="Vestige, home"><Lockup /></a>
-    <nav aria-label="Main">
+    <a class="home" href="/" aria-label="Vestige, home"><Lockup size={30} /></a>
+
+    <nav class="wide" aria-label="Main">
       <ul>
         {
           nav.map((item) => (
@@ -28,67 +36,241 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
         }
       </ul>
     </nav>
-    <a class="v-button v-button--secondary cta" href="/#notify">Get notified</a>
+
+    <div class="end">
+      <a class="pill pill--cta" href="/#notify">Get notified</a>
+      <details class="menu" data-menu>
+        <summary aria-label="Menu">
+          <span class="bars" aria-hidden="true"><span></span><span></span></span>
+        </summary>
+        <div class="sheet">
+          <nav aria-label="Main">
+            <ul>
+              {
+                nav.map((item) => (
+                  <li>
+                    <a href={item.href} aria-current={isCurrent(item.href) ? "page" : undefined}>
+                      {item.label}
+                      <span aria-hidden="true">›</span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </nav>
+          <a class="v-button v-button--primary sheet-cta" href="/#notify">Tell me when 1.0 is out</a>
+        </div>
+      </details>
+    </div>
   </div>
 </header>
+
+<script>
+  for (const menu of document.querySelectorAll<HTMLDetailsElement>("[data-menu]")) {
+    const close = () => (menu.open = false);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && menu.open) {
+        close();
+        menu.querySelector("summary")?.focus();
+      }
+    });
+    document.addEventListener("click", (e) => {
+      if (menu.open && !menu.contains(e.target as Node)) close();
+    });
+    matchMedia("(min-width: 861px)").addEventListener("change", (e) => e.matches && close());
+    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", close));
+  }
+</script>
 
 <style>
   .site-header {
     position: sticky;
     top: 0;
-    z-index: 5;
+    z-index: 20;
     background: var(--v-surface-glass);
     backdrop-filter: blur(20px) saturate(1.2);
     -webkit-backdrop-filter: blur(20px) saturate(1.2);
     border-bottom: 1px solid var(--v-separator);
   }
   .bar {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: var(--s6);
     min-height: 64px;
   }
   .home {
+    justify-self: start;
     text-decoration: none;
-    flex: none;
   }
-  nav {
-    flex: 1;
-  }
-  ul {
+  .end {
+    justify-self: end;
     display: flex;
-    gap: var(--s5);
-    list-style: none;
-    margin: 0;
-    padding: 0;
+    align-items: center;
+    gap: var(--s2);
   }
-  nav a {
+
+  /* ---- Wide: centred pills -------------------------------------------- */
+  .wide ul {
+    display: flex;
+    gap: var(--s1);
+    margin: 0;
+    padding: var(--s1);
+    list-style: none;
+    border-radius: var(--r-pill);
+    background: var(--v-fill-faint);
+  }
+  .wide a {
+    display: block;
+    padding: 8px 16px;
+    border-radius: var(--r-pill);
     color: var(--v-text-secondary);
     font-size: var(--t-ui-body);
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
-    transition: color var(--dur-fast) var(--ease-spring);
+    white-space: nowrap;
+    transition:
+      color var(--dur-fast) var(--ease-spring),
+      background-color var(--dur-fast) var(--ease-spring);
   }
-  nav a:hover,
-  nav a[aria-current="page"] {
+  .wide a:hover {
     color: var(--v-text-primary);
   }
-  .cta {
-    min-height: 40px;
-    padding: 0 var(--s4);
-    font-size: var(--t-ui-body);
-    border-radius: var(--r-md);
+  .wide a[aria-current="page"] {
+    background: var(--v-surface-raised);
+    color: var(--v-text-primary);
+    box-shadow: var(--card-edge);
   }
-  @media (max-width: 560px) {
-    .bar {
-      gap: var(--s4);
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: var(--r-pill);
+    font-size: var(--t-ui-body);
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .pill--cta {
+    border: 1px solid var(--v-border);
+    background: var(--v-surface-raised);
+    color: var(--v-text-primary);
+    transition: background-color var(--dur-fast) var(--ease-spring);
+  }
+  .pill--cta:hover {
+    background: var(--v-fill-faint);
+  }
+
+  /* ---- Narrow: the menu ----------------------------------------------- */
+  .menu {
+    display: none;
+  }
+  summary {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-pill);
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary:hover {
+    background: var(--v-fill-faint);
+  }
+  .bars {
+    display: grid;
+    gap: 6px;
+    width: 20px;
+  }
+  .bars span {
+    display: block;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--v-text-primary);
+    transition: transform var(--dur-fast) var(--ease-spring);
+  }
+  .menu[open] .bars span:first-child {
+    transform: translateY(4px) rotate(45deg);
+  }
+  .menu[open] .bars span:last-child {
+    transform: translateY(-4px) rotate(-45deg);
+  }
+  .sheet {
+    position: absolute;
+    left: var(--page-gutter);
+    right: var(--page-gutter);
+    top: calc(100% + var(--s2));
+    display: grid;
+    gap: var(--s5);
+    padding: var(--s3) var(--s5) var(--s5);
+    border-radius: var(--r-xl);
+    background: var(--v-surface-raised);
+    box-shadow:
+      var(--card-edge),
+      0 18px 40px -12px rgb(11 15 20 / 0.22);
+  }
+  .menu[open] .sheet {
+    animation: sheet-in var(--dur-base) var(--ease-spring);
+  }
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
     }
-    .cta {
+  }
+  .sheet ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .sheet li + li {
+    border-top: 1px solid var(--v-separator);
+  }
+  .sheet a:not(.v-button) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--s4) 0;
+    color: var(--v-text-primary);
+    font-family: var(--font-display);
+    font-size: var(--t-h3);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .sheet a span {
+    color: var(--v-text-tertiary);
+  }
+  .sheet a[aria-current="page"] {
+    color: var(--v-accent-ink);
+  }
+  .sheet-cta {
+    width: 100%;
+  }
+
+  @media (max-width: 860px) {
+    .bar {
+      grid-template-columns: 1fr auto;
+    }
+    .wide {
       display: none;
     }
-    nav ul {
-      justify-content: flex-end;
-      gap: var(--s4);
+    .menu {
+      display: block;
+    }
+  }
+  @media (max-width: 359px) {
+    .pill--cta {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .menu[open] .sheet {
+      animation: none;
     }
   }
 </style>

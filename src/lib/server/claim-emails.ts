@@ -14,17 +14,17 @@ const card = "#ffffff";
 const edge = "#e3e8f0";
 const font = `-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`;
 
-const esc = (s: string) =>
+export const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-type Block =
+export type Block =
   | { p: string }
   | { button: { href: string; label: string } }
   | { rows: Array<[string, string]> }
   | { code: string }
   | { note: string };
 
-function layout(kicker: string, title: string, blocks: Block[], footer: string): string {
+export function layout(kicker: string, title: string, blocks: Block[], footer: string): string {
   const body = blocks
     .map((b) => {
       if ("p" in b) return `<p style="margin:0 0 16px;font:16px/1.6 ${font};color:${secondary}">${b.p}</p>`;
@@ -58,7 +58,7 @@ ${body}
 </table></td></tr></table></body></html>`;
 }
 
-function plain(title: string, lines: string[]): string {
+export function plain(title: string, lines: string[]): string {
   return [title, "", ...lines, "", "Jack and Tom", `${site.name} - ${site.url}`].join("\n");
 }
 

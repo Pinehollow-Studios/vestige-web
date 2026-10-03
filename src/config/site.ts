@@ -36,6 +36,7 @@ export const testflightUrl = "https://testflight.apple.com/join/atyEAmqR";
 export const nav: ReadonlyArray<{ href: string; label: string }> = [
   { href: "/courses", label: "Courses" },
   { href: "/app", label: "The app" },
+  { href: "/clubs", label: "For clubs" },
 ];
 
 export const legalNav: ReadonlyArray<{ href: string; label: string }> = [
