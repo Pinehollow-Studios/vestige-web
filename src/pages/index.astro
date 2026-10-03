@@ -1,0 +1,150 @@
+---
+/**
+ * TEMPORARY - the foundations sheet. Replaced by the real homepage in the
+ * next step of release 1 (docs/rebuild-plan.md). It exists so the canvas,
+ * type, card, buttons and both appearances can be checked on staging.
+ */
+import Base from "../layouts/Base.astro";
+
+const swatches = [
+  ["surface", "--v-surface"],
+  ["surfaceRaised", "--v-surface-raised"],
+  ["textPrimary", "--v-text-primary"],
+  ["textSecondary", "--v-text-secondary"],
+  ["accent", "--v-accent"],
+  ["accentInk", "--v-accent-ink"],
+  ["bucket", "--v-bucket"],
+  ["alert", "--v-alert"],
+];
+---
+
+<Base title="Foundations" noindex>
+  <section class="v-container hero">
+    <p class="v-label">Foundations · release 1, step 1</p>
+    <h1 class="v-page-hero">Every golf course in Britain, collected.</h1>
+    <p class="v-lead">
+      The canvas, type, card and buttons the new site is built from, straight from the app’s
+      design system. Switch your device between light and dark to see both appearances.
+    </p>
+    <div class="actions">
+      <a class="v-button v-button--primary" href="#specimen">Log a round</a>
+      <a class="v-button v-button--secondary" href="#specimen">Add to a list</a>
+      <a class="v-button v-button--tertiary" href="#specimen">Not now</a>
+    </div>
+  </section>
+
+  <section class="v-container grid" id="specimen">
+    <article class="v-card county">
+      <p class="v-label">County</p>
+      <h2>Surrey</h2>
+      <p><span class="v-hero-numeral">34</span> <span class="v-meta">of 47</span></p>
+      <div class="bar" role="img" aria-label="34 of 47 courses played">
+        <span style="width: 72%"></span>
+      </div>
+      <p class="v-meta">Thirteen clubs to go.</p>
+    </article>
+
+    <article class="v-card">
+      <p class="v-section-heading">Next nearby</p>
+      <ul class="rows">
+        <li><strong>Walton Heath</strong><span class="v-meta">Old Course</span></li>
+        <li><strong>St George’s Hill</strong><span class="v-meta">Red and Blue</span></li>
+        <li><strong>New Zealand</strong><span class="v-meta">Woodham</span></li>
+      </ul>
+    </article>
+
+    <article class="v-card type">
+      <p class="v-section-heading">Type</p>
+      <p class="v-hero-numeral">138</p>
+      <h1>Sunningdale</h1>
+      <h2>Sunningdale</h2>
+      <h3>Sunningdale</h3>
+      <p>Royal Birkdale, at reading size in the system face.</p>
+      <p class="v-meta">Meta and captions, 13 regular, secondary.</p>
+    </article>
+
+    <article class="v-card">
+      <p class="v-section-heading">Colour</p>
+      <ul class="swatches">
+        {
+          swatches.map(([name, token]) => (
+            <li>
+              <span class="chip" style={`background: var(${token})`} />
+              <span class="v-meta">{name}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </article>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    gap: var(--s5);
+    padding-block: var(--s24) var(--s16);
+    max-width: calc(840px + 2 * var(--page-gutter));
+    margin-inline: 0;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s4);
+    margin-top: var(--s3);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: var(--s5);
+  }
+  .county,
+  .type {
+    display: grid;
+    gap: var(--s3);
+  }
+  .bar {
+    height: 8px;
+    border-radius: var(--r-pill);
+    background: var(--v-fill-soft);
+    overflow: hidden;
+  }
+  /* A progress beat: one of the gradient's sanctioned moments. */
+  .bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background-image: linear-gradient(90deg, var(--v-accent), var(--v-accent-lime));
+  }
+  .rows {
+    list-style: none;
+    margin: var(--s4) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--s4);
+  }
+  .rows li {
+    display: grid;
+    gap: 2px;
+  }
+  .swatches {
+    list-style: none;
+    margin: var(--s4) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--s3);
+  }
+  .swatches li {
+    display: flex;
+    align-items: center;
+    gap: var(--s2);
+  }
+  .chip {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--r-sm);
+    box-shadow: inset 0 0 0 1px var(--v-border);
+  }
+</style>

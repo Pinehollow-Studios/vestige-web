@@ -1,0 +1,39 @@
+---
+/**
+ * The horizontal lockup: the globe mark beside the wordmark, which is live
+ * text in Manrope Medium, sentence case, never tracked (design kit §3.3).
+ * The mark is never recoloured or redrawn; it ships from the kit.
+ */
+interface Props {
+  /** Height of the mark in px; the wordmark scales with it. */
+  size?: number;
+}
+const { size = 28 } = Astro.props;
+---
+
+<span class="lockup" style={`--mark: ${size}px`}>
+  <img src="/brand/vestige-globe-256.png" alt="" width={size} height={size} />
+  <span class="wordmark">Vestige</span>
+</span>
+
+<style>
+  .lockup {
+    display: inline-flex;
+    align-items: center;
+    /* A fifth of the mark's width between mark and wordmark. */
+    gap: calc(var(--mark) / 5);
+    color: var(--v-text-primary);
+  }
+  .lockup img {
+    width: var(--mark);
+    height: var(--mark);
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 500;
+    /* The mark sits a little under twice the wordmark's height. */
+    font-size: calc(var(--mark) * 0.72);
+    line-height: 1;
+    letter-spacing: 0;
+  }
+</style>

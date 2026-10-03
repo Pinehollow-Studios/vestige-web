@@ -1,0 +1,351 @@
+/*
+ * Vestige foundation - everything a page is built from, per the design kit
+ * (~/Documents/VESTIGE/Vestige Design System/DESIGN-SYSTEM.md).
+ *
+ * Colours come from vestige-colors.css (generated from the app; never edit,
+ * run `npm run sync:kit`). This file adds what the kit specifies in words:
+ * type, spacing, radius, motion, the canvas and the card. Light and dark
+ * follow the visitor's device, from the same tokens, as the app does.
+ *
+ * The September 2026 rules this file enforces by construction:
+ * - the canvas is the surface plus ONE faint blue glow from the top; no
+ *   other glow, no texture, no vignette, no resting shadow
+ * - one accent (mint), from the token for the appearance
+ * - the mint-to-lime gradient only on the hero call to action, a completion
+ *   beat and the mark (.v-button--primary is the only place it lives here)
+ * - sentence case everywhere; nothing uppercase, nothing tracked out
+ */
+
+@import "./vestige-colors.css";
+
+:root {
+  color-scheme: light dark;
+
+  /* ---- Type (§7) ----------------------------------------------------- */
+  /* Display: Manrope. UI and body: the system face (SF Pro on Apple). */
+  --font-display: var(--font-manrope), system-ui, sans-serif;
+  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Display ladder. The app's sizes are the large end; on narrow screens
+     each step scales down in proportion so the ladder keeps its ratios. */
+  --t-hero-numeral: clamp(3.5rem, 2.2rem + 5.5vw, 5rem);   /* 80 */
+  --t-page-hero: clamp(2.75rem, 1.9rem + 3.6vw, 4rem);      /* 64 */
+  --t-h1: clamp(2.125rem, 1.6rem + 2.2vw, 2.75rem);         /* 44 */
+  --t-h2: clamp(1.625rem, 1.3rem + 1.4vw, 2rem);            /* 32 */
+  --t-h3: 1.375rem;                                          /* 22 */
+  --t-editorial: 1rem;                                       /* 16 */
+
+  /* UI ladder: three sizes, two weights (17 / 15 / 13). */
+  --t-ui-large: 1.0625rem;  /* 17 - reading size, leads */
+  --t-ui-body: 0.9375rem;   /* 15 - default UI copy */
+  --t-ui-meta: 0.8125rem;   /* 13 - meta, labels, captions */
+  --t-label: 0.75rem;       /* 12 Medium - the label above a hero metric */
+
+  /* ---- Spacing: the 8pt grid (§8.1) ------------------------------------ */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;   /* most common internal padding */
+  --s5: 20px;   /* section gutter */
+  --s6: 24px;   /* card padding, large gutter */
+  --s7: 32px;   /* vertical rhythm between blocks */
+  --s12: 48px;
+  /* Page-scale rhythm for the web, still on the grid. */
+  --s16: 64px;
+  --s24: 96px;
+  --s32: 128px;
+  --section-gap: clamp(var(--s16), 10vw, var(--s32));
+  --page-gutter: clamp(var(--s5), 5vw, var(--s12));
+  --page-width: 1200px;
+  --text-width: 640px;
+
+  /* ---- Radius: concentric (§8.2) ------------------------------------- */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 12px;
+  --r-lg: 20px;
+  --r-xl: 20px;  /* cards */
+  --r-xxl: 24px;
+  --r-pill: 999px;
+
+  /* ---- Motion (§8.3) ------------------------------------------------- */
+  /* Springs with no bounce: they decelerate like a thing with mass and
+     settle without wobbling. linear() approximates a critically damped
+     spring; durations match the app's tokens. */
+  --ease-spring: linear(0, 0.072 4%, 0.264 9.6%, 0.515 16.4%, 0.725 23.6%, 0.861 31.2%,
+      0.94 39.2%, 0.979 48%, 0.995 58.4%, 1);
+  --ease-camera: cubic-bezier(0.65, 0, 0.35, 1);    /* map fly-to */
+  --ease-count-up: cubic-bezier(0.16, 1, 0.3, 1);   /* expo-out */
+  --dur-fast: 200ms;
+  --dur-base: 280ms;
+  --dur-camera: 600ms;
+  --dur-count-up: 600ms;
+
+  /* ---- The canvas glow (§6) ------------------------------------------ */
+  /* atmosphereGlow at the top centre, falling through atmosphereWash to
+     nothing by about 400px down: 60% / 30% opacity in light. */
+  --glow-strength: 60%;
+  --wash-strength: 30%;
+
+  /* ---- The card (§8.4) ----------------------------------------------- */
+  /* A solid panel. In light a white card is held off the near-white page
+     by a 10% ink edge (cardEdge); in dark by a 6% white lift (cardLift). */
+  --card-edge: inset 0 0 0 1px rgb(31 58 95 / 0.1);
+  --card-lift: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --glow-strength: 45%;
+    --wash-strength: 35%;
+    --card-edge: none;
+    --card-lift: linear-gradient(rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.06));
+  }
+}
+
+/* ---- Base ------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background-color: var(--v-surface);
+  background-image: radial-gradient(
+    ellipse 120% 400px at 50% 0,
+    color-mix(in srgb, var(--v-atmosphere-glow) var(--glow-strength), transparent) 0%,
+    color-mix(in srgb, var(--v-atmosphere-wash) var(--wash-strength), transparent) 45%,
+    transparent 100%
+  );
+  background-repeat: no-repeat;
+  color: var(--v-text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--t-ui-large);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  color: var(--v-accent-ink);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--v-accent-ink);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+
+::selection {
+  background: var(--v-accent-soft);
+}
+
+/* Headings carry rank on weight alone: Manrope SemiBold, sentence case. */
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: balance;
+}
+h1 { font-size: var(--t-h1); }
+h2 { font-size: var(--t-h2); }
+h3 { font-size: var(--t-h3); line-height: 1.2; }
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/* ---- Utilities ------------------------------------------------------- */
+
+.v-container {
+  width: 100%;
+  max-width: calc(var(--page-width) + 2 * var(--page-gutter));
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+.v-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The one big number on a page: Manrope Medium, tight, digits that don't
+   jitter when they change. */
+.v-hero-numeral {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-hero-numeral);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  font-variant-numeric: tabular-nums;
+}
+
+.v-page-hero {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--t-page-hero);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.v-lead {
+  font-size: var(--t-ui-large);
+  color: var(--v-text-secondary);
+  max-width: var(--text-width);
+}
+
+.v-meta {
+  font-size: var(--t-ui-meta);
+  color: var(--v-text-secondary);
+}
+
+/* The label above a hero metric: sentence case, 12 Medium, secondary. */
+.v-label {
+  font-size: var(--t-label);
+  font-weight: 500;
+  color: var(--v-text-secondary);
+}
+
+/* A section heading with the 5pt accent dot, where the surface wants a
+   mark (VSectionEyebrow, sentence case since September 2026). */
+.v-section-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  font-family: var(--font-ui);
+  font-size: var(--t-ui-large);
+  font-weight: 600;
+  color: var(--v-text-primary);
+}
+.v-section-heading::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--v-accent);
+  flex: none;
+}
+
+.v-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Continuous (squircle) corners where the browser can draw them. */
+@supports (corner-shape: squircle) {
+  .v-card,
+  .v-button {
+    corner-shape: squircle;
+  }
+}
+
+/* ---- Card ------------------------------------------------------------ */
+
+.v-card {
+  background-color: var(--v-surface-raised);
+  background-image: var(--card-lift);
+  box-shadow: var(--card-edge);
+  border-radius: var(--r-xl);
+  padding: var(--s6);
+}
+
+/* ---- Buttons (VButton) ----------------------------------------------- */
+/* Primary is the gradient call to action: exactly one per page. Secondary
+   is drawn by its hairline; tertiary is accent text with no container. */
+
+.v-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: 52px;
+  padding: 0 var(--s6);
+  border-radius: var(--r-lg);
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: var(--t-ui-large);
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-spring),
+    background-color var(--dur-fast) var(--ease-spring),
+    border-color var(--dur-fast) var(--ease-spring);
+}
+.v-button:active {
+  transform: scale(0.98);
+}
+
+.v-button--primary {
+  background-image: linear-gradient(135deg, var(--v-accent), var(--v-accent-lime));
+  color: var(--v-on-accent);
+}
+
+.v-button--secondary {
+  background-color: var(--v-control-glass);
+  border-color: var(--v-border);
+  color: var(--v-text-primary);
+}
+.v-button--secondary:hover {
+  background-color: var(--v-fill-faint);
+}
+
+.v-button--tertiary {
+  min-height: auto;
+  padding: 0;
+  background: none;
+  color: var(--v-accent-ink);
+}
+.v-button--tertiary:hover {
+  text-decoration: underline;
+}
+
+/* ---- Motion preferences ---------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Page-to-page continuity: the browser's own view transitions, off when
+   the visitor asks for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+}

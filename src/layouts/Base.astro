@@ -1,0 +1,78 @@
+---
+/**
+ * The page shell every page uses: head, header, main, footer, and the
+ * canvas (surface + one blue glow, from foundation.css). Light and dark
+ * follow the visitor's device.
+ *
+ * Anything that isn't the production deployment is kept out of search
+ * engines here and in robots.txt (SITE_ENV, astro.config.mjs).
+ */
+import { Font } from "astro:assets";
+import { SITE_ENV } from "astro:env/server";
+import "../styles/foundation.css";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import { site } from "../config/site";
+
+interface Props {
+  /** The page's own title; the site name is appended. Omit on the homepage. */
+  title?: string;
+  description?: string;
+  /** Keep this page out of search results even in production. */
+  noindex?: boolean;
+}
+
+const { title, description = site.description, noindex = false } = Astro.props;
+const pageTitle = title ? `${title} · ${site.name}` : `${site.name} - ${site.tagline}`;
+const canonical = new URL(Astro.url.pathname, site.url).toString();
+const indexable = SITE_ENV === "production" && !noindex;
+---
+
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {!indexable && <meta name="robots" content="noindex, nofollow" />}
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f2f5fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#070a10" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:title" content={title ?? site.name} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_GB" />
+    <Font cssVariable="--font-manrope" preload />
+    <slot name="head" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: absolute;
+    left: var(--s4);
+    top: -100px;
+    z-index: 10;
+    padding: var(--s2) var(--s4);
+    background: var(--v-surface-raised);
+    color: var(--v-text-primary);
+    border-radius: var(--r-md);
+  }
+  .skip-link:focus {
+    top: var(--s4);
+  }
+</style>

@@ -13,9 +13,12 @@
 # testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# build output
+/dist/
+/.astro/
+/.wrangler/
+.dev.vars*
+/legacy-next/.next/
 
 # production
 /build
@@ -39,7 +42,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 # Temporary git commit-message files
 .commit-msg*

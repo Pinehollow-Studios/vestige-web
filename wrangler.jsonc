@@ -1,0 +1,27 @@
+{
+  // vestige.golf on Cloudflare Workers. The Astro adapter supplies the entry
+  // point and the static-assets directory at build time.
+  //
+  //   npm run deploy:staging   build, then deploy the staging Worker
+  //
+  // Production (vestige.golf + www) is attached at the cutover, release 1.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "vestige-web",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  // Unknown paths get the site's own 404 page (src/pages/404.astro).
+  "assets": { "not_found_handling": "404-page" },
+  "workers_dev": false,
+  "preview_urls": false,
+  "vars": { "SITE_ENV": "production" },
+  "env": {
+    "staging": {
+      // next.vestige.golf, behind Cloudflare Access (the same Google gate as
+      // the bunker). Never indexed: SITE_ENV is not "production".
+      "name": "vestige-web-staging",
+      "workers_dev": true,
+      "vars": { "SITE_ENV": "staging" }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Page not found" noindex>
+  <section class="v-container notfound">
+    <p class="v-hero-numeral">404</p>
+    <h1>This page isn’t on the map.</h1>
+    <p class="v-lead">The link may be old, or the page may have moved.</p>
+    <a class="v-button v-button--primary" href="/">Back to Vestige</a>
+  </section>
+</Base>
+
+<style>
+  .notfound {
+    display: grid;
+    gap: var(--s5);
+    justify-items: start;
+    padding-block: var(--s24);
+  }
+</style>
