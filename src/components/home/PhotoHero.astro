@@ -24,7 +24,7 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
     alt={photo.alt}
     formats={["avif", "webp"]}
     widths={[640, 960, 1280, 1920, 2560]}
-    sizes="100vw"
+    sizes="(max-width: 760px) and (min-resolution: 3dppx) 67vw, 100vw"
     loading="eager"
     fetchpriority="high"
     class="hero-photo"
@@ -56,12 +56,14 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
       <button type="submit">Search</button>
     </form>
     </div>
-    <PhoneFrame screen={screens.courseHankley} maxWidth={300} loading="eager" class="hero-phone" />
+    <PhoneFrame screen={screens.courseHankley} maxWidth={300} class="hero-phone" />
   </div>
   <p class="credit">{caption(photo)}</p>
 </section>
+<!-- Two copies of the phone, one per layout, both lazy: a browser skips a
+     lazy image that isn't shown, so each screen downloads only its own. -->
 <div class="mobile-phone">
-  <PhoneFrame screen={screens.courseHankley} maxWidth={240} loading="eager" />
+  <PhoneFrame screen={screens.courseHankley} maxWidth={240} />
 </div>
 
 <style>
@@ -75,6 +77,11 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
     min-height: min(88svh, 860px);
     overflow: hidden;
     color: var(--v-on-photo);
+  }
+  @media (max-width: 760px) {
+    .hero {
+      min-height: min(78svh, 700px);
+    }
   }
   .hero :global(.hero-photo),
   .hero :global(.hero-photo img) {
