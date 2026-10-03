@@ -253,6 +253,13 @@ const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`)
   }
 
   @media (max-width: 860px) {
+    /* Solid on phones: a full-width backdrop blur on a sticky bar is costly
+       to scroll on iPhone (and glitchy in Safari 26). */
+    .site-header {
+      background: var(--v-surface);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
     .bar {
       grid-template-columns: 1fr auto;
     }

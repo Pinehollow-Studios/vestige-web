@@ -1,16 +1,19 @@
 ---
 /**
- * Signature scene one: the map of Britain filling in as you scroll.
- * England's 47 counties turn mint one by one, south to north (the order
- * the course database was built in), and a counter climbs to 47. Scotland
- * and Wales sit beside it, marked as next.
+ * Signature scene one: the map of Britain filling in. England's 47 counties
+ * turn mint south to north (the order the course database was built in) and
+ * a counter climbs to 47. Scotland and Wales sit beside it, marked as next.
  *
- * The counties fill with a scroll-driven CSS animation on a view timeline.
- * The counter beside them is set by a few lines of script from the same
- * scroll position (a CSS counter fed by an animated custom property is not
- * reliable across browsers: Safari showed 47 straight away). Without
- * support for scroll-driven animations, without JavaScript, or with reduced
- * motion asked for, the map and the count show their finished state.
+ * Wide screens: the scene pins and the fill follows the scroll (a CSS
+ * scroll-driven animation on a view timeline; the counter is a few lines of
+ * script on the same range).
+ *
+ * Phones (Tom, 3 Oct 2026): no pinning. When the map comes into view the
+ * counties fill and the count runs 0 to 47 once, in under two seconds.
+ *
+ * Without JavaScript, without scroll-driven animation support on wide
+ * screens, or with reduced motion asked for, the map and the count simply
+ * show their finished state.
  */
 import { COUNTY_SHAPES, COUNTY_VIEW } from "../../data/counties";
 import { COUNTRY_SHAPES } from "../../data/countries";
@@ -59,7 +62,7 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
                 <path
                   d={s.d}
                   fill-rule="evenodd"
-                  style={`--o: ${((i / counties.length) * 78).toFixed(2)}%`}
+                  style={`--o: ${((i / counties.length) * 78).toFixed(2)}%; --d: ${Math.round((i / counties.length) * 1300)}ms`}
                 />
               ))
             }
@@ -71,13 +74,15 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
 </section>
 
 <script>
-  // The count follows the scroll: 0 as the map pins, 47 as the last county
-  // fills (84% of the way through, the end of the fill animation's range).
   const scene = document.querySelector<HTMLElement>(".map-scene");
   const out = scene?.querySelector<HTMLElement>("[data-count]");
-  const animated =
-    CSS.supports("animation-timeline: view()") && !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (scene && out && animated) {
+  const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const wide = matchMedia("(min-width: 861px)").matches;
+  const timelines = CSS.supports("animation-timeline: view()");
+
+  if (scene && out && !calm && wide && timelines) {
+    // Wide: the count follows the scroll, 0 as the map pins, 47 as the last
+    // county fills (84% of the way through, the end of the fill's range).
     const total = Number(out.textContent) || 47;
     let queued = false;
     const update = () => {
@@ -97,6 +102,26 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
     addEventListener("scroll", request, { passive: true });
     addEventListener("resize", request);
     update();
+  } else if (scene && out && !calm && !wide) {
+    // Phones: fill once, when the map comes into view.
+    const total = Number(out.textContent) || 47;
+    scene.classList.add("is-armed");
+    out.textContent = "0";
+    new IntersectionObserver(
+      (entries, io) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        scene.classList.add("is-filled");
+        const start = performance.now();
+        const run = (now: number) => {
+          const t = Math.min(1, (now - start) / 1700);
+          out.textContent = String(Math.round((1 - Math.pow(1 - t, 3)) * total));
+          if (t < 1) requestAnimationFrame(run);
+        };
+        requestAnimationFrame(run);
+      },
+      { threshold: 0.45 }
+    ).observe(scene.querySelector(".map") ?? scene);
   }
 </script>
 
@@ -161,9 +186,9 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
     fill: var(--v-text-secondary);
   }
 
-  /* The scroll story, where the browser can tell it. */
+  /* The scroll story on wide screens, where the browser can tell it. */
   @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
+    @media (prefers-reduced-motion: no-preference) and (min-width: 861px) {
       .map-scene {
         height: 260vh;
       }
@@ -182,6 +207,15 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
         animation-range: contain var(--o) contain calc(var(--o) + 6%);
       }
     }
+  }
+
+  /* Phones: fill once, when the map arrives (the script adds the classes). */
+  .is-armed .counties path {
+    fill: var(--v-fill-soft);
+    transition: fill 520ms ease var(--d);
+  }
+  .is-armed.is-filled .counties path {
+    fill: var(--v-accent);
   }
 
   @keyframes county-fill {
@@ -204,10 +238,6 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
       grid-template-columns: minmax(0, 1fr);
       gap: var(--s4);
     }
-    /* On a phone the copy and the map share one screen while it pins. */
-    .copy .v-lead {
-      font-size: var(--t-ui-body);
-    }
     .tally {
       margin-top: 0;
     }
@@ -215,7 +245,7 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
       padding: var(--s4);
     }
     .map svg {
-      max-height: 42svh;
+      max-height: 62svh;
       margin-inline: auto;
     }
   }

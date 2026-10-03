@@ -2,66 +2,76 @@
 /**
  * A real app screenshot in an iPhone-shaped frame, drawn in CSS so it
  * stays crisp at any size: a near-black bezel, the screen's own rounded
- * corners and the Dynamic Island. Always upright. Behind it, a soft pool
- * of mint and blue light; beneath it, a gentle shadow on the ground, so it
- * sits in the page rather than on it. Width is set by the parent; the
- * frame keeps the 1206 x 2622 screen's proportions. With `more`, the
- * screen holds several layers that slide across behind a still bezel.
+ * corners and the Dynamic Island. Always upright. On wide screens a soft
+ * pool of the app's mint and lime sits behind it and a gentle shadow
+ * beneath; on phones the glow goes and the shadow loses its blur filter
+ * (blurred layers are costly to scroll on iPhone). Width is set by the
+ * parent; the frame keeps the 1206 x 2622 screen's proportions.
+ *
+ * Images are capped at twice the shown size, even on 3x iPhones: no visible
+ * difference at phone sizes, and about half the bytes and decoded memory.
+ *
+ * With `more`, the screen holds several layers (data-layer={i}). On wide
+ * screens they stack and slide across behind a still bezel (the page sets
+ * data-state on each). With `swipe`, phones get them as a native swipe
+ * row inside the screen instead. Only the first loads up front; the page
+ * promotes the rest when the phone comes near (data-layer img loading).
  */
 import { Picture } from "astro:assets";
 import type { Screen } from "../data/screens";
 
 interface Props {
   screen: Screen;
-  /**
-   * More screens behind the first, for a phone whose screen changes while
-   * the bezel stays put (the homepage walkthrough). Each is a layer marked
-   * data-layer={i}; the page decides which is showing.
-   */
+  /** More screens behind the first: see above. */
   more?: ReadonlyArray<Screen>;
+  /** On phones, show `more` as a swipe row inside the screen. */
+  swipe?: boolean;
   /** Rendered width in CSS px at its largest, for responsive image sizes. */
   maxWidth?: number;
   loading?: "lazy" | "eager";
   class?: string;
 }
-const { screen, more = [], maxWidth = 320, loading = "lazy", class: className } = Astro.props;
+const { screen, more = [], swipe = false, maxWidth = 320, loading = "lazy", class: className } = Astro.props;
 const layered = more.length > 0;
+const widths = [maxWidth, Math.min(maxWidth * 2, 1206)];
+// On 3x screens, claim two thirds of the width so the browser picks the 2x file.
+const sizes = `(min-resolution: 3dppx) ${Math.round((maxWidth * 2) / 3)}px, ${maxWidth}px`;
 ---
 
-<div class:list={["device", className]}>
+<div class:list={["device", className, { swipe: swipe && layered }]}>
   <div class="phone">
-  <div class="screen">
-    {
-      layered ? (
-        [screen, ...more].map((sc, i) => (
-          <div class="layer" data-layer={i} data-state={i === 0 ? "on" : "after"}>
-            {/* Eager: a layer waiting off to the side is clipped, so lazy
-                loading could hold it back until it slides in, black. */}
-            <Picture
-              src={sc.src}
-              alt={i === 0 ? sc.alt : ""}
-              formats={["avif", "webp"]}
-              widths={[maxWidth, Math.min(maxWidth * 2, 1206), Math.min(maxWidth * 3, 1206)]}
-              sizes={`${maxWidth}px`}
-              loading="eager"
-              fetchpriority="low"
-              decoding="async"
-            />
+    <div class="screen">
+      {
+        layered ? (
+          <div class="layers" data-layers>
+            {[screen, ...more].map((sc, i) => (
+              <div class="layer" data-layer={i} data-state={i === 0 ? "on" : "after"}>
+                <Picture
+                  src={sc.src}
+                  alt={i === 0 ? sc.alt : ""}
+                  formats={["avif", "webp"]}
+                  widths={widths}
+                  sizes={sizes}
+                  loading={i === 0 ? loading : "lazy"}
+                  decoding="async"
+                />
+              </div>
+            ))}
           </div>
-        ))
-      ) : (
-        <Picture
-          src={screen.src}
-          alt={screen.alt}
-          formats={["avif", "webp"]}
-          widths={[maxWidth, Math.min(maxWidth * 2, 1206), Math.min(maxWidth * 3, 1206)]}
-          sizes={`${maxWidth}px`}
-          loading={loading}
-        />
-      )
-    }
-    <span class="island" aria-hidden="true"></span>
-  </div>
+        ) : (
+          <Picture
+            src={screen.src}
+            alt={screen.alt}
+            formats={["avif", "webp"]}
+            widths={widths}
+            sizes={sizes}
+            loading={loading}
+            decoding="async"
+          />
+        )
+      }
+      <span class="island" aria-hidden="true"></span>
+    </div>
   </div>
 </div>
 
@@ -120,8 +130,13 @@ const layered = more.length > 0;
     height: 100%;
     object-fit: cover;
   }
+
   /* Layered screens: the showing one in place, earlier ones pushed left and
      dimmed, later ones waiting off to the right, like a screen pushing on. */
+  .layers {
+    position: absolute;
+    inset: 0;
+  }
   .layer {
     position: absolute;
     inset: 0;
@@ -145,6 +160,52 @@ const layered = more.length > 0;
   .layer[data-state="on"] + .layer[data-state="after"] {
     box-shadow: -12px 0 24px rgb(0 0 0 / 0.35);
   }
+
+  .island {
+    position: absolute;
+    top: 1.35%;
+    left: 50%;
+    z-index: 4;
+    width: 30%;
+    height: 3.9%;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #000;
+    pointer-events: none;
+  }
+
+  /* ---- Phones ---------------------------------------------------------- */
+  @media (max-width: 860px) {
+    .device::before {
+      display: none;
+    }
+    .device::after {
+      filter: none;
+      background: radial-gradient(closest-side, rgb(11 15 20 / 0.22), transparent);
+    }
+    /* A swipe row inside the screen: native scrolling, snapping per screen. */
+    .swipe .layers {
+      display: flex;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+    .swipe .layers::-webkit-scrollbar {
+      display: none;
+    }
+    .swipe .layer {
+      position: relative;
+      flex: 0 0 100%;
+      transform: none;
+      filter: none;
+      box-shadow: none;
+      transition: none;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .layer {
       transition: opacity var(--dur-base) ease;
@@ -155,15 +216,8 @@ const layered = more.length > 0;
       opacity: 0;
       filter: none;
     }
-  }
-  .island {
-    position: absolute;
-    top: 1.35%;
-    left: 50%;
-    width: 30%;
-    height: 3.9%;
-    transform: translateX(-50%);
-    border-radius: 999px;
-    background: #000;
+    .swipe .layer {
+      opacity: 1;
+    }
   }
 </style>

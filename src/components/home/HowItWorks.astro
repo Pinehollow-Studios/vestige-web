@@ -1,20 +1,21 @@
 ---
 /**
- * Signature scene two: the app, for real, as one pinned sheet (the Apple
- * product-page pattern; Tom, 3 Oct 2026).
+ * Signature scene two: the app, for real.
  *
- * The scene takes one screen's worth of space and pins under the header
- * while you scroll through it. Scrolling moves through four steps: the
- * phone's bezel stays still and its screen pushes across to the next, the
- * words crossfade beside it (below it on phones), and the dots show where
- * you are (tap one to go there). Every step gets an even share of the
- * scroll.
+ * Wide screens (Tom, 3 Oct 2026): one pinned sheet, the Apple product-page
+ * pattern. The scene takes one screen's worth of space and holds under the
+ * header while you scroll through it; the phone's bezel stays still and its
+ * screen pushes across to each step in turn, the words crossfade beside it,
+ * and the dots show where you are (click one to go there).
  *
- * The script below does the pinning (it adds .is-pinned, which makes the
- * section tall and the sheet sticky) and maps scroll to step. Without
- * JavaScript the scene is a plain section: the first screen, and every step
- * listed beside it. With reduced motion it still pins, but changes are
- * instant.
+ * Phones (Tom, 3 Oct 2026: "build this for phone"): no pinning. One phone
+ * whose four screens are a native swipe inside it; tap the phone or a dot to
+ * move on, and the words beneath follow. Light, and it scrolls like the
+ * rest of the page.
+ *
+ * The script switches between the two at the 860px breakpoint. Without
+ * JavaScript the scene is a plain section: the first screen and every step
+ * listed. With reduced motion, changes are instant.
  */
 import { screens, type Screen } from "../../data/screens";
 import PhoneFrame from "../PhoneFrame.astro";
@@ -78,11 +79,12 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
         </div>
       </div>
 
-      <div class="stage" aria-hidden="true">
+      <div class="stage" aria-hidden="true" data-stage>
         <PhoneFrame
           screen={steps[0].screen}
           more={steps.slice(1).map((step) => step.screen)}
-          maxWidth={320}
+          swipe
+          maxWidth={300}
           class="stage-phone"
         />
       </div>
@@ -93,13 +95,16 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
 <script>
   for (const walk of document.querySelectorAll<HTMLElement>("[data-walk]")) {
     const sheet = walk.querySelector<HTMLElement>(".sheet")!;
+    const stage = walk.querySelector<HTMLElement>("[data-stage]")!;
+    const row = walk.querySelector<HTMLElement>("[data-layers]")!;
     const layers = walk.querySelectorAll<HTMLElement>("[data-layer]");
     const steps = walk.querySelectorAll<HTMLElement>("[data-step]");
     const dots = walk.querySelectorAll<HTMLButtonElement>("[data-go]");
     const count = steps.length;
+    const wide = matchMedia("(min-width: 861px)");
     let current = -1;
 
-    walk.classList.add("is-pinned");
+    walk.classList.add("is-live");
 
     const show = (i: number) => {
       if (i === current) return;
@@ -115,39 +120,75 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
       });
     };
 
-    // How far through the pinned stretch we are, 0 to 1: the sheet sticks
-    // `stick` px from the top (under the header) for walk height minus
-    // sheet height of scrolling.
+    // The other screens load when the scene is near, not with the page.
+    new IntersectionObserver(
+      (entries, io) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        walk.querySelectorAll<HTMLImageElement>("[data-layer] img").forEach((img) => (img.loading = "eager"));
+        io.disconnect();
+      },
+      { rootMargin: "800px 0px" }
+    ).observe(walk);
+
+    // ---- Wide: pinned, scroll picks the step ----------------------------
     const stick = () => parseFloat(getComputedStyle(sheet).top) || 0;
     const progress = () => {
       const travel = walk.offsetHeight - sheet.offsetHeight;
       const moved = stick() - walk.getBoundingClientRect().top;
       return travel > 0 ? Math.min(1, Math.max(0, moved / travel)) : 0;
     };
-
     let queued = false;
-    const update = () => {
+    const onScroll = () => {
       queued = false;
-      show(Math.min(count - 1, Math.floor(progress() * count)));
+      if (wide.matches) show(Math.min(count - 1, Math.floor(progress() * count)));
     };
-    const request = () => {
-      if (!queued) {
-        queued = true;
-        requestAnimationFrame(update);
-      }
-    };
-    addEventListener("scroll", request, { passive: true });
-    addEventListener("resize", request);
-    update();
+    addEventListener(
+      "scroll",
+      () => {
+        if (wide.matches && !queued) {
+          queued = true;
+          requestAnimationFrame(onScroll);
+        }
+      },
+      { passive: true }
+    );
 
-    // A dot scrolls to the middle of its step's share of the scene.
+    // ---- Phones: the swipe inside the phone picks the step --------------
+    let swipeQueued = false;
+    row.addEventListener(
+      "scroll",
+      () => {
+        if (wide.matches || swipeQueued) return;
+        swipeQueued = true;
+        requestAnimationFrame(() => {
+          swipeQueued = false;
+          show(Math.round(row.scrollLeft / Math.max(1, row.clientWidth)));
+        });
+      },
+      { passive: true }
+    );
+    const swipeTo = (i: number) => row.scrollTo({ left: i * row.clientWidth, behavior: "smooth" });
+    stage.addEventListener("click", () => {
+      if (!wide.matches) swipeTo((current + 1) % count);
+    });
+
     dots.forEach((dot, i) =>
       dot.addEventListener("click", () => {
+        if (!wide.matches) return swipeTo(i);
         const travel = walk.offsetHeight - sheet.offsetHeight;
         const top = walk.getBoundingClientRect().top + scrollY - stick();
         scrollTo({ top: top + ((i + 0.5) / count) * travel, behavior: "smooth" });
       })
     );
+
+    const mode = () => {
+      walk.classList.toggle("is-pinned", wide.matches);
+      current = -1;
+      if (wide.matches) onScroll();
+      else show(Math.round(row.scrollLeft / Math.max(1, row.clientWidth)));
+    };
+    wide.addEventListener("change", mode);
+    mode();
   }
 </script>
 
@@ -209,7 +250,7 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     font-weight: 600;
     font-size: 17px;
   }
-  .is-pinned [data-on] > .num {
+  .is-live [data-on] > .num {
     background-image: linear-gradient(135deg, var(--v-accent), var(--v-accent-lime));
     color: var(--v-on-accent);
   }
@@ -261,10 +302,10 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     padding-block: var(--s7);
     overflow: hidden;
   }
-  .is-pinned .steps {
+  .is-live .steps {
     gap: 0;
   }
-  .is-pinned .steps li {
+  .is-live .steps li {
     grid-area: 1 / 1;
     opacity: 0;
     transform: translateY(14px);
@@ -273,12 +314,12 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
       opacity 360ms ease,
       transform 520ms var(--ease-spring);
   }
-  .is-pinned .steps li[data-on] {
+  .is-live .steps li[data-on] {
     opacity: 1;
     transform: none;
     pointer-events: auto;
   }
-  .is-pinned .dots {
+  .is-live .dots {
     display: flex;
   }
   /* The phone sized to the screen's height, so the whole sheet always fits. */
@@ -286,24 +327,27 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     width: min(300px, calc((100svh - 64px - 2 * var(--s7)) * 0.44));
   }
 
-  /* ---- Phones: stacked in the one sheet -------------------------------- */
+  /* ---- Phones: a section like any other, the swipe inside the phone ---- */
   @media (max-width: 860px) {
     .grid {
       grid-template-columns: minmax(0, 1fr);
-      gap: var(--s5);
+      gap: var(--s6);
     }
     .words {
       display: contents;
     }
     .head {
       order: 1;
-      gap: var(--s1);
     }
     .head .v-display {
-      font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem);
+      font-size: clamp(2rem, 1.3rem + 3.6vw, 2.5rem);
     }
     .stage {
       order: 2;
+      cursor: pointer;
+    }
+    .stage :global(.stage-phone) {
+      width: min(64vw, 260px);
     }
     .steps {
       order: 3;
@@ -312,41 +356,29 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
       order: 4;
       justify-content: center;
     }
-    .is-pinned .num {
+    .is-live .num {
       display: none;
     }
     h3 {
-      font-size: 1.375rem;
+      font-size: 1.5rem;
     }
     .steps p {
-      font-size: var(--t-ui-body);
+      font-size: var(--t-ui-large);
     }
-    .is-pinned .steps li {
-      gap: var(--s1);
+    .is-live .steps li {
+      gap: var(--s2);
       text-align: center;
       justify-items: center;
       margin-inline: auto;
     }
-    .is-pinned .sheet {
-      padding-block: var(--s5);
-    }
-    .is-pinned .grid {
-      align-content: center;
-      gap: var(--s4);
-    }
-    /* The phone takes what the screen has left after the title, the step's
-       words and the dots (about 330px), so the sheet always fits. */
-    .is-pinned .stage :global(.stage-phone) {
-      width: min(62vw, calc((100svh - 64px - 330px) * 0.46));
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .is-pinned .steps li,
+    .is-live .steps li,
     .dots button {
       transition: none;
     }
-    .is-pinned .steps li {
+    .is-live .steps li {
       transform: none;
     }
   }

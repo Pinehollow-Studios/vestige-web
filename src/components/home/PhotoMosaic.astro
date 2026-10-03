@@ -32,7 +32,7 @@ const tiles = [
             alt={photo.alt}
             formats={["avif", "webp"]}
             widths={[480, 800, 1200]}
-            sizes="(max-width: 760px) 100vw, 40vw"
+            sizes="(max-width: 760px) and (min-resolution: 3dppx) 55vw, (max-width: 760px) 82vw, 40vw"
             loading="lazy"
           />
           <figcaption>{caption(photo)}</figcaption>
