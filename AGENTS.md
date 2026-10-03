@@ -38,10 +38,12 @@ System/`). Read its `FOR-AI.md` and `DESIGN-SYSTEM.md` before designing anything
   `npm run sync:kit`. Never hand-edit it, never invent a colour, never eyedrop.
 - Two faces: **Manrope** for display (headings, hero numerals, the wordmark) and the
   **system UI face** for everything else. No third face.
-- The canvas is the surface plus one faint blue glow from the top. No other glow, glass on
+- The canvas is the surface plus a faint mint-to-lime glow from the top (`--app-glow`).
+  Sections that need a ground use the softened app gradient (`--app-wash`, `.v-band`):
+  Tom's call on 3 Oct 2026, replacing the kit's flat pale blue. No other glow, glass on
   content, texture, vignette or resting shadow. Content sits on solid cards (`.v-card`).
-- One accent, mint. The mint-to-lime gradient only on the page's one primary call to
-  action, a completion or progress beat, and the mark.
+- One accent, mint. The full-strength mint-to-lime gradient on the page's one primary
+  call to action, progress beats (active step numbers, progress dots) and the mark.
 - Sentence case everywhere. Nothing uppercase, nothing letterspaced.
 - Light only (`data-theme="light"`), photo-led: full-bleed photos with the kit's onPhoto
   cream over a scrim; real app screens in `PhoneFrame`.

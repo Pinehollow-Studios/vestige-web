@@ -5,32 +5,61 @@
  * corners and the Dynamic Island. Always upright. Behind it, a soft pool
  * of mint and blue light; beneath it, a gentle shadow on the ground, so it
  * sits in the page rather than on it. Width is set by the parent; the
- * frame keeps the 1206 x 2622 screen's proportions.
+ * frame keeps the 1206 x 2622 screen's proportions. With `more`, the
+ * screen holds several layers that slide across behind a still bezel.
  */
 import { Picture } from "astro:assets";
 import type { Screen } from "../data/screens";
 
 interface Props {
   screen: Screen;
+  /**
+   * More screens behind the first, for a phone whose screen changes while
+   * the bezel stays put (the homepage walkthrough). Each is a layer marked
+   * data-layer={i}; the page decides which is showing.
+   */
+  more?: ReadonlyArray<Screen>;
   /** Rendered width in CSS px at its largest, for responsive image sizes. */
   maxWidth?: number;
   loading?: "lazy" | "eager";
   class?: string;
 }
-const { screen, maxWidth = 320, loading = "lazy", class: className } = Astro.props;
+const { screen, more = [], maxWidth = 320, loading = "lazy", class: className } = Astro.props;
+const layered = more.length > 0;
 ---
 
 <div class:list={["device", className]}>
   <div class="phone">
   <div class="screen">
-    <Picture
-      src={screen.src}
-      alt={screen.alt}
-      formats={["avif", "webp"]}
-      widths={[maxWidth, Math.min(maxWidth * 2, 1206), Math.min(maxWidth * 3, 1206)]}
-      sizes={`${maxWidth}px`}
-      loading={loading}
-    />
+    {
+      layered ? (
+        [screen, ...more].map((sc, i) => (
+          <div class="layer" data-layer={i} data-state={i === 0 ? "on" : "after"}>
+            {/* Eager: a layer waiting off to the side is clipped, so lazy
+                loading could hold it back until it slides in, black. */}
+            <Picture
+              src={sc.src}
+              alt={i === 0 ? sc.alt : ""}
+              formats={["avif", "webp"]}
+              widths={[maxWidth, Math.min(maxWidth * 2, 1206), Math.min(maxWidth * 3, 1206)]}
+              sizes={`${maxWidth}px`}
+              loading="eager"
+              fetchpriority="low"
+              decoding="async"
+            />
+          </div>
+        ))
+      ) : (
+        <Picture
+          src={screen.src}
+          alt={screen.alt}
+          formats={["avif", "webp"]}
+          widths={[maxWidth, Math.min(maxWidth * 2, 1206), Math.min(maxWidth * 3, 1206)]}
+          sizes={`${maxWidth}px`}
+          loading={loading}
+        />
+      )
+    }
     <span class="island" aria-hidden="true"></span>
   </div>
   </div>
@@ -41,7 +70,7 @@ const { screen, maxWidth = 320, loading = "lazy", class: className } = Astro.pro
     position: relative;
     isolation: isolate;
   }
-  /* The glow: mint at the heart, the canvas's blue at the edge. */
+  /* The glow: the app's mint at the heart, its lime at the edge. */
   .device::before {
     content: "";
     position: absolute;
@@ -50,7 +79,7 @@ const { screen, maxWidth = 320, loading = "lazy", class: className } = Astro.pro
     background: radial-gradient(
       closest-side,
       color-mix(in srgb, var(--v-accent) 42%, transparent) 0%,
-      color-mix(in srgb, #4c86c8 26%, transparent) 55%,
+      color-mix(in srgb, var(--v-accent-lime) 22%, transparent) 55%,
       transparent 100%
     );
     filter: blur(32px);
@@ -90,6 +119,42 @@ const { screen, maxWidth = 320, loading = "lazy", class: className } = Astro.pro
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  /* Layered screens: the showing one in place, earlier ones pushed left and
+     dimmed, later ones waiting off to the right, like a screen pushing on. */
+  .layer {
+    position: absolute;
+    inset: 0;
+    transition:
+      transform 620ms var(--ease-spring),
+      filter 620ms var(--ease-spring);
+  }
+  .layer[data-state="on"] {
+    z-index: 2;
+    transform: none;
+  }
+  .layer[data-state="before"] {
+    z-index: 1;
+    transform: translateX(-28%);
+    filter: brightness(0.55);
+  }
+  .layer[data-state="after"] {
+    z-index: 3;
+    transform: translateX(102%);
+  }
+  .layer[data-state="on"] + .layer[data-state="after"] {
+    box-shadow: -12px 0 24px rgb(0 0 0 / 0.35);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .layer {
+      transition: opacity var(--dur-base) ease;
+    }
+    .layer[data-state="before"],
+    .layer[data-state="after"] {
+      transform: none;
+      opacity: 0;
+      filter: none;
+    }
   }
   .island {
     position: absolute;
