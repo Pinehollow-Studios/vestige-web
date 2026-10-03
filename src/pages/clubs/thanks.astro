@@ -1,0 +1,46 @@
+---
+/** After a club's enquiry is sent (/api/enquire). Never indexed. */
+import Base from "../../layouts/Base.astro";
+---
+
+<Base title="Thanks" noindex>
+  <section class="v-container thanks">
+    <p class="v-kicker">For clubs</p>
+    <h1 class="v-display">Thanks. It’s with us.</h1>
+    <p class="v-lead">
+      Your note has gone straight to Jack and Tom, and one of us will reply within two working days. We’ve
+      sent you a copy.
+    </p>
+    <div class="v-card next">
+      <h2>While you wait</h2>
+      <p>If you haven’t already, claim your course page. It’s free, and with your club email it’s instant.</p>
+      <a class="v-button v-button--secondary" href="/clubs/claim">Claim your course page</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .thanks {
+    max-width: calc(720px + 2 * var(--page-gutter));
+    padding-block: var(--s24) 0;
+    display: grid;
+    gap: var(--s5);
+  }
+  .thanks .v-lead {
+    margin: 0;
+  }
+  .next {
+    display: grid;
+    justify-items: start;
+    gap: var(--s3);
+    margin-top: var(--s5);
+    padding: var(--s7);
+  }
+  .next h2 {
+    font-size: var(--t-h3);
+  }
+  .next p {
+    margin: 0;
+    color: var(--v-text-secondary);
+  }
+</style>

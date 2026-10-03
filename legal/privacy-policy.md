@@ -201,10 +201,16 @@ children.
 
 ## This website
 
-This website asks for personal information in two places.
+This website asks for personal information in three places.
 
 - **The 1.0 list.** The email address you give us, held to tell you about
   Vestige and deleted once it has done its job or on request.
+- **Enquiries from golf clubs.** If you get in touch through our page for
+  clubs, your name, role, club, work email, phone number if you give it, and
+  your message. We use them to reply and to keep a record of the
+  conversation (our legitimate interest in answering you), keep them for up
+  to two years after we last spoke, and delete them sooner on request. We
+  send occasional updates only if you tick the box asking for them.
 - **Claiming a course page.** If you work at a golf club and claim its page,
   your name, your role at the club and your work email. We use them to
   confirm that you can speak for the club, to send you the private link for

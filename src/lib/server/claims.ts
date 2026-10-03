@@ -13,14 +13,7 @@
  */
 import { workerEnv } from "./worker-env";
 
-export const CLAIM_ROLES = [
-  "Secretary or general manager",
-  "Owner or director",
-  "Head professional",
-  "Marketing or membership",
-  "Committee member",
-  "Other",
-] as const;
+export { CLAIM_ROLES } from "../clubs";
 
 export function newToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
