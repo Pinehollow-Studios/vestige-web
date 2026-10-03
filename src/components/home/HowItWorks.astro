@@ -1,10 +1,16 @@
 ---
 /**
- * Signature scene two: the app, for real. On wide screens the phone pins
- * while four steps scroll past, and its screen changes to match the step
- * in view (a few lines of script below; without it, the first screen
- * stays and every step still reads). On phones each step carries its own
- * screen inline.
+ * Signature scene two: the app, for real.
+ *
+ * Wide screens: the phone pins while four steps scroll past. The bezel stays
+ * still and its screen pushes across to the step in view, the way a screen
+ * changes in the app; the step being shown lights up and its number takes
+ * the gradient, with dots under the phone for where you are.
+ *
+ * Phones: a swipeable row of cards. The one in the middle comes forward and
+ * the dots follow; tap a dot to jump. Both are driven by the script below
+ * (IntersectionObserver), so they behave the same in every browser; without
+ * script the first screen stays and every step still reads.
  */
 import { screens, type Screen } from "../../data/screens";
 import PhoneFrame from "../PhoneFrame.astro";
@@ -43,21 +49,21 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
 
     <div class="body">
       <div class="stage" aria-hidden="true">
-        <div class="stack">
-          {
-            steps.map((step, i) => (
-              <div class="slide" data-slide={i} data-on={i === 0 ? "" : undefined}>
-                <PhoneFrame screen={step.screen} maxWidth={320} />
-              </div>
-            ))
-          }
+        <PhoneFrame
+          screen={steps[0].screen}
+          more={steps.slice(1).map((step) => step.screen)}
+          maxWidth={320}
+          class="stage-phone"
+        />
+        <div class="dots">
+          {steps.map((_, i) => <span data-dot={i} data-on={i === 0 ? "" : undefined} />)}
         </div>
       </div>
 
       <ol class="steps">
         {
           steps.map((step, i) => (
-            <li data-step={i}>
+            <li data-step={i} data-on={i === 0 ? "" : undefined}>
               <span class="num v-tabular">{i + 1}</span>
               <h3>{step.title}</h3>
               <p>{step.body}</p>
@@ -68,10 +74,10 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     </div>
   </div>
 
-  <ol class="swipe" aria-label="The app, step by step">
+  <ol class="swipe" aria-label="The app, step by step" data-swipe>
     {
       steps.map((step, i) => (
-        <li class="card">
+        <li class="card" data-card={i} data-on={i === 0 ? "" : undefined}>
           <PhoneFrame screen={step.screen} maxWidth={260} />
           <div class="card-copy">
             <span class="num v-tabular">{i + 1}</span>
@@ -82,24 +88,69 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
       ))
     }
   </ol>
-  <p class="swipe-hint v-meta" aria-hidden="true">Swipe for more</p>
+  <div class="swipe-dots" data-swipe-dots>
+    {
+      steps.map((step, i) => (
+        <button type="button" data-go={i} data-on={i === 0 ? "" : undefined} aria-label={`Step ${i + 1}: ${step.title}`} />
+      ))
+    }
+  </div>
 </section>
 
 <script>
-  // Swap the pinned phone's screen to the step in the middle of the view.
+  const mark = (els: Iterable<Element>, key: string, i: number) => {
+    for (const el of els) el.toggleAttribute("data-on", (el as HTMLElement).dataset[key] === String(i));
+  };
+
   for (const walk of document.querySelectorAll<HTMLElement>("[data-walk]")) {
-    const slides = walk.querySelectorAll<HTMLElement>("[data-slide]");
-    const observer = new IntersectionObserver(
+    walk.classList.add("is-live");
+    // Wide: the pinned phone follows the step in the middle of the view.
+    const layers = walk.querySelectorAll<HTMLElement>(".stage [data-layer]");
+    const steps = walk.querySelectorAll<HTMLElement>("[data-step]");
+    const dots = walk.querySelectorAll<HTMLElement>("[data-dot]");
+    const show = (i: number) => {
+      layers.forEach((layer) => {
+        const n = Number(layer.dataset.layer);
+        layer.dataset.state = n < i ? "before" : n === i ? "on" : "after";
+      });
+      mark(steps, "step", i);
+      mark(dots, "dot", i);
+    };
+    const stepWatch = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (!entry.isIntersecting) continue;
-          const i = (entry.target as HTMLElement).dataset.step;
-          slides.forEach((s) => s.toggleAttribute("data-on", s.dataset.slide === i));
+          if (entry.isIntersecting) show(Number((entry.target as HTMLElement).dataset.step));
         }
       },
       { rootMargin: "-45% 0px -45% 0px" }
     );
-    walk.querySelectorAll("[data-step]").forEach((step) => observer.observe(step));
+    steps.forEach((step) => stepWatch.observe(step));
+
+    // Phones: the card in the middle comes forward; the dots follow and jump.
+    const row = walk.querySelector<HTMLElement>("[data-swipe]");
+    const cards = walk.querySelectorAll<HTMLElement>("[data-card]");
+    const go = walk.querySelectorAll<HTMLButtonElement>("[data-go]");
+    if (row) {
+      row.classList.add("is-live");
+      const cardWatch = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const i = Number((entry.target as HTMLElement).dataset.card);
+            mark(cards, "card", i);
+            mark(go, "go", i);
+          }
+        },
+        { root: row, threshold: 0.6 }
+      );
+      cards.forEach((card) => cardWatch.observe(card));
+      go.forEach((button) =>
+        button.addEventListener("click", () => {
+          const card = cards[Number(button.dataset.go)];
+          row.scrollTo({ left: card.offsetLeft - row.offsetLeft - parseFloat(getComputedStyle(row).scrollPaddingLeft || "0"), behavior: "smooth" });
+        })
+      );
+    }
   }
 </script>
 
@@ -122,21 +173,28 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     display: grid;
     justify-items: center;
   }
-  .stack {
-    display: grid;
+  .stage :global(.stage-phone) {
     width: min(100%, 320px);
   }
-  .slide {
-    grid-area: 1 / 1;
-    opacity: 0;
-    transform: translateY(16px) scale(0.97);
-    transition:
-      opacity var(--dur-base) var(--ease-spring),
-      transform 480ms var(--ease-spring);
+  .dots {
+    display: flex;
+    gap: var(--s2);
+    margin-top: var(--s7);
   }
-  .slide[data-on] {
-    opacity: 1;
-    transform: none;
+  .dots span,
+  .swipe-dots button {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--r-pill);
+    background: var(--v-fill-soft);
+    transition:
+      width 420ms var(--ease-spring),
+      background-color var(--dur-base) ease;
+  }
+  .dots span[data-on],
+  .swipe-dots button[data-on] {
+    width: 28px;
+    background-image: linear-gradient(135deg, var(--v-accent), var(--v-accent-lime));
   }
   .steps {
     list-style: none;
@@ -149,6 +207,14 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     align-content: center;
     min-height: 72svh;
     max-width: 30rem;
+    transition:
+      opacity 420ms var(--ease-spring),
+      transform 520ms var(--ease-spring);
+  }
+  /* With the script running, the step being shown lights up. */
+  .walk.is-live .steps li:not([data-on]) {
+    opacity: 0.32;
+    transform: translateX(-8px);
   }
   .num {
     display: grid;
@@ -161,6 +227,14 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     font-family: var(--font-display);
     font-weight: 600;
     font-size: 18px;
+    transition:
+      background-color var(--dur-base) ease,
+      color var(--dur-base) ease;
+  }
+  [data-on] > .num,
+  .card[data-on] .num {
+    background-image: linear-gradient(135deg, var(--v-accent), var(--v-accent-lime));
+    color: var(--v-on-accent);
   }
   h3 {
     font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
@@ -175,7 +249,7 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
 
   /* Phones: a swipeable row of screens instead of a long list. */
   .swipe,
-  .swipe-hint {
+  .swipe-dots {
     display: none;
   }
   @media (max-width: 860px) {
@@ -218,36 +292,38 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     h3 {
       font-size: 1.625rem;
     }
-    .swipe-hint {
-      display: block;
-      text-align: center;
-      margin-top: var(--s2);
+    .swipe-dots {
+      display: flex;
+      justify-content: center;
+      gap: var(--s2);
+      margin-top: var(--s3);
+    }
+    .swipe-dots button {
+      padding: 0;
+      border: 0;
+      cursor: pointer;
+    }
+    /* With the script running, the card in the middle comes forward. */
+    .swipe.is-live .card {
+      transition:
+        transform 520ms var(--ease-spring),
+        opacity 420ms var(--ease-spring);
+    }
+    .swipe.is-live .card:not([data-on]) {
+      opacity: 0.5;
+      transform: scale(0.92);
     }
   }
-  /* The card in the middle of the row comes forward. */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) and (max-width: 860px) {
-      .card {
-        animation-name: card-focus;
-        animation-timing-function: linear;
-        animation-fill-mode: both;
-        animation-timeline: view(inline);
-      }
+  @media (prefers-reduced-motion: reduce) {
+    .steps li,
+    .swipe.is-live .card {
+      transition: none;
     }
-  }
-  @keyframes card-focus {
-    0% {
-      opacity: 0.45;
-      transform: scale(0.9);
-    }
-    35%,
-    65% {
-      opacity: 1;
+    .walk.is-live .steps li:not([data-on]) {
       transform: none;
     }
-    100% {
-      opacity: 0.45;
-      transform: scale(0.9);
+    .swipe.is-live .card:not([data-on]) {
+      transform: none;
     }
   }
 </style>

@@ -84,11 +84,22 @@
   --dur-camera: 600ms;
   --dur-count-up: 600ms;
 
-  /* ---- The canvas glow (§6) ------------------------------------------ */
-  /* atmosphereGlow at the top centre, falling through atmosphereWash to
-     nothing by about 400px down: 60% / 30% opacity in light. */
-  --glow-strength: 60%;
-  --wash-strength: 30%;
+  /* ---- The app's gradient as a wash (Tom, 3 Oct 2026) ----------------- */
+  /* Where the site used flat pale blue (the canvas glow, the bands, the map
+     card), it now carries the app's own mint-to-lime, softened over the
+     surface. The full-strength gradient stays for calls to action. */
+  --app-glow: radial-gradient(
+    ellipse 120% 420px at 50% 0,
+    color-mix(in srgb, var(--v-accent) 18%, transparent) 0%,
+    color-mix(in srgb, var(--v-accent-lime) 10%, transparent) 50%,
+    transparent 100%
+  );
+  --app-wash: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--v-accent) 22%, var(--v-surface)) 0%,
+    color-mix(in srgb, var(--v-accent) 10%, var(--v-surface)) 50%,
+    color-mix(in srgb, var(--v-accent-lime) 20%, var(--v-surface)) 100%
+  );
 
   /* ---- Over photography (§4.8) --------------------------------------- */
   /* Cream ink over a photograph, on a scrim of the kit's onPhotoScrim. */
@@ -122,12 +133,7 @@ body {
   margin: 0;
   min-height: 100svh;
   background-color: var(--v-surface);
-  background-image: radial-gradient(
-    ellipse 120% 400px at 50% 0,
-    color-mix(in srgb, var(--v-atmosphere-glow) var(--glow-strength), transparent) 0%,
-    color-mix(in srgb, var(--v-atmosphere-wash) var(--wash-strength), transparent) 45%,
-    transparent 100%
-  );
+  background-image: var(--app-glow);
   background-repeat: no-repeat;
   color: var(--v-text-primary);
   font-family: var(--font-ui);
@@ -286,21 +292,15 @@ p {
 }
 
 /* ---- Bands ----------------------------------------------------------- */
-/* A tinted light section that breaks the page into chapters: the surface
-   washed with the kit's atmosphere blue, with the canvas glow repeated
-   from its top. White cards sit proud of it. Light only, never dark. */
+/* A light section that breaks the page into chapters, washed with the
+   app's mint-to-lime (--app-wash). White cards sit proud of it. Light only,
+   never dark. */
 .v-band {
   position: relative;
   isolation: isolate;
   padding-block: var(--section-gap);
-  background-color: color-mix(in srgb, var(--v-atmosphere-wash) 38%, var(--v-surface));
-  background-image: radial-gradient(
-    ellipse 120% 480px at 50% 0,
-    color-mix(in srgb, var(--v-atmosphere-glow) var(--glow-strength), transparent) 0%,
-    color-mix(in srgb, var(--v-atmosphere-wash) var(--wash-strength), transparent) 45%,
-    transparent 100%
-  );
-  background-repeat: no-repeat;
+  background-color: var(--v-surface);
+  background-image: var(--app-wash);
 }
 
 /* ---- Forms ----------------------------------------------------------- */

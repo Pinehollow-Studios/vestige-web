@@ -87,9 +87,7 @@ const viewBox = `${view.x.toFixed(1)} ${view.y.toFixed(1)} ${view.w.toFixed(1)} 
     margin: 0;
     border-radius: var(--r-xxl);
     overflow: hidden;
-    background:
-      radial-gradient(ellipse 90% 70% at 50% 0%, color-mix(in srgb, var(--v-atmosphere-glow) 70%, transparent), transparent 70%),
-      color-mix(in srgb, var(--v-atmosphere-wash) 45%, var(--v-surface));
+    background: var(--app-wash);
     box-shadow: var(--card-edge);
   }
   .main {
