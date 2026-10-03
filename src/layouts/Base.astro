@@ -1,8 +1,8 @@
 ---
 /**
  * The page shell every page uses: head, header, main, footer, and the
- * canvas (surface + one blue glow, from foundation.css). Light and dark
- * follow the visitor's device.
+ * canvas (surface + one blue glow, from foundation.css). Light only:
+ * data-theme="light" keeps the kit's light palette even on a dark device.
  *
  * Anything that isn't the production deployment is kept out of search
  * engines here and in robots.txt (SITE_ENV, astro.config.mjs).
@@ -29,7 +29,7 @@ const indexable = SITE_ENV === "production" && !noindex;
 ---
 
 <!doctype html>
-<html lang="en-GB">
+<html lang="en-GB" data-theme="light">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -37,9 +37,8 @@ const indexable = SITE_ENV === "production" && !noindex;
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     {!indexable && <meta name="robots" content="noindex, nofollow" />}
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#f2f5fa" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#070a10" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f2f5fa" />
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta property="og:site_name" content={site.name} />

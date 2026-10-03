@@ -14,10 +14,13 @@ Workers** (free plan). It replaces the Next.js site and the last of Vercel.
 
 | Question | Call |
 |---|---|
-| Design language | **App-true.** The website is built inside the app's own design system (`~/Documents/VESTIGE/Vestige Design System/`), done with far more craft than today. No separate web identity, no new palette. |
-| Light or dark | **Follows the visitor's device**, both appearances from the same tokens, exactly as the app does. |
+| Design language | **App-true, photo-led** (refined 3 Oct). Built from the app's design system (`~/Documents/VESTIGE/Vestige Design System/`): its tokens, mint, Manrope. Loosened for the web to feel lighter and warmer: full-bleed photography with cream text over a scrim (the kit's `onPhoto` tokens), bigger editorial type, rounder friendlier shapes, and the kit's map greens, list accents (sand, moss, copper, delft) and amber as supporting colours. |
+| Light or dark | **Light only** (refined 3 Oct). One appearance, designed around photography; `data-theme="light"` holds it even on a dark device. |
 | Type | **Manrope for display** (headings, hero numerals, the wordmark) and **the visitor's system UI face for body** (SF Pro on Apple devices), exactly as the kit specifies for the web (§7). Both free. No third face. |
-| Photography | Tom's and Jack's own, plus a few licensed images, **always credited**. Real app screenshots carry most of the product story. |
+| Photography | **Photo-led, lots of it.** Tom's and Jack's own (fewer than 10 today) plus **free licensed stock** (Unsplash, Pexels), always credited. A stock photo is never captioned as a named course unless the course is verified. People: **a mix**, mostly courses and landscapes with some candid golf among friends. |
+| Other design elements | **Real app screens** in phone frames, **the map of Britain illustrated** (filling in as you scroll), **simple course sketches** (line drawings of holes and landmarks). |
+| Homepage hero | **A full-width British course photo, "How many have you played?", and a course search box over it** (the AllTrails / Top 100 pattern), leading straight into the directory. |
+| Words | **Warmer, with a little wit.** Still the clubhouse friend (brief, honest, en-GB) but less spec-sheet. |
 | Release 1 | **Home + the app + the course directory**, all on Astro: the whole current site replaced in one cutover. One framework from day one. |
 | Then, as fast follow-ups | **For clubs** (with the enquiry form), **Journal** (replaces /progress), **About + how we count**. Partners and a press kit later. |
 | Club offer on the site | **Deliberately vague and enquiry-only**: no prices, no package detail, nothing that teaches a golfer what the data holds. Named offers: **claim your course page** and the **"Collect us on Vestige" badge**. Everything else is "talk to us". |

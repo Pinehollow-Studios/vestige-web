@@ -4,8 +4,11 @@
  *
  * Colours come from vestige-colors.css (generated from the app; never edit,
  * run `npm run sync:kit`). This file adds what the kit specifies in words:
- * type, spacing, radius, motion, the canvas and the card. Light and dark
- * follow the visitor's device, from the same tokens, as the app does.
+ * type, spacing, radius, motion, the canvas and the card.
+ *
+ * LIGHT ONLY (Tom, 3 Oct 2026): the website is photo-led and has one
+ * appearance, the app's light palette. Base.astro sets data-theme="light",
+ * which the kit's colour file honours over a dark device setting.
  *
  * The September 2026 rules this file enforces by construction:
  * - the canvas is the surface plus ONE faint blue glow from the top; no
@@ -19,7 +22,7 @@
 @import "./vestige-colors.css";
 
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
   /* ---- Type (§7) ----------------------------------------------------- */
   /* Display: Manrope. UI and body: the system face (SF Pro on Apple). */
@@ -87,20 +90,20 @@
   --glow-strength: 60%;
   --wash-strength: 30%;
 
+  /* ---- Over photography (§4.8) --------------------------------------- */
+  /* Cream ink over a photograph, on a scrim of the kit's onPhotoScrim. */
+  --photo-scrim: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--v-on-photo-scrim) 62%, transparent) 0%,
+    color-mix(in srgb, var(--v-on-photo-scrim) 28%, transparent) 45%,
+    transparent 75%
+  );
+
   /* ---- The card (§8.4) ----------------------------------------------- */
-  /* A solid panel. In light a white card is held off the near-white page
-     by a 10% ink edge (cardEdge); in dark by a 6% white lift (cardLift). */
+  /* A solid panel: a white card held off the near-white page by a 10% ink
+     edge (cardEdge). */
   --card-edge: inset 0 0 0 1px rgb(31 58 95 / 0.1);
   --card-lift: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --glow-strength: 45%;
-    --wash-strength: 35%;
-    --card-edge: none;
-    --card-lift: linear-gradient(rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.06));
-  }
 }
 
 /* ---- Base ------------------------------------------------------------ */
