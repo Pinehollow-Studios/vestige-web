@@ -103,7 +103,6 @@
   /* A solid panel: a white card held off the near-white page by a 10% ink
      edge (cardEdge). */
   --card-edge: inset 0 0 0 1px rgb(31 58 95 / 0.1);
-  --card-lift: none;
 }
 
 /* ---- Base ------------------------------------------------------------ */
@@ -270,11 +269,44 @@ p {
   }
 }
 
+/* ---- Display type ---------------------------------------------------- */
+/* Section titles with real presence: big Manrope, tight, on phones too. */
+.v-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(2.5rem, 1.55rem + 4.4vw, 4.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.v-kicker {
+  font-size: var(--t-ui-body);
+  font-weight: 600;
+  color: var(--v-accent-ink);
+}
+
+/* ---- Bands ----------------------------------------------------------- */
+/* A tinted light section that breaks the page into chapters: the surface
+   washed with the kit's atmosphere blue, with the canvas glow repeated
+   from its top. White cards sit proud of it. Light only, never dark. */
+.v-band {
+  position: relative;
+  isolation: isolate;
+  padding-block: var(--section-gap);
+  background-color: color-mix(in srgb, var(--v-atmosphere-wash) 38%, var(--v-surface));
+  background-image: radial-gradient(
+    ellipse 120% 480px at 50% 0,
+    color-mix(in srgb, var(--v-atmosphere-glow) var(--glow-strength), transparent) 0%,
+    color-mix(in srgb, var(--v-atmosphere-wash) var(--wash-strength), transparent) 45%,
+    transparent 100%
+  );
+  background-repeat: no-repeat;
+}
+
 /* ---- Card ------------------------------------------------------------ */
 
 .v-card {
   background-color: var(--v-surface-raised);
-  background-image: var(--card-lift);
   box-shadow: var(--card-edge);
   border-radius: var(--r-xl);
   padding: var(--s6);

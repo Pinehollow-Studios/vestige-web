@@ -51,6 +51,12 @@ const year = new Date().getFullYear();
 <style>
   .site-footer {
     margin-top: var(--section-gap);
+  }
+  /* A band as the page's last section already closes the page. */
+  :global(main:has(> section.v-band:last-of-type)) + .site-footer {
+    margin-top: 0;
+  }
+  .site-footer {
     padding-block: var(--s12) var(--s7);
     border-top: 1px solid var(--v-separator);
   }

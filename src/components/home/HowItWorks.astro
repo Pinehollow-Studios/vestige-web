@@ -8,7 +8,6 @@
  */
 import { screens, type Screen } from "../../data/screens";
 import PhoneFrame from "../PhoneFrame.astro";
-import HoleSketch from "../HoleSketch.astro";
 
 const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
   {
@@ -34,41 +33,56 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
 ];
 ---
 
-<section class="v-container walk" aria-labelledby="walk-title" data-walk>
-  <div class="head v-reveal">
-    <h2 id="walk-title">Collecting courses, made simple.</h2>
-    <p class="v-lead">Free on iPhone. No scorecards to fill in, no swing to fix. Just the places you’ve played.</p>
-  </div>
-
-  <div class="body">
-    <div class="stage" aria-hidden="true">
-      <div class="stack">
-        {
-          steps.map((step, i) => (
-            <div class="slide" data-slide={i} data-on={i === 0 ? "" : undefined}>
-              <PhoneFrame screen={step.screen} maxWidth={320} />
-            </div>
-          ))
-        }
-      </div>
-      <HoleSketch class="sketch" />
+<section class="v-band walk" aria-labelledby="walk-title" data-walk>
+  <div class="v-container">
+    <div class="head v-reveal">
+      <p class="v-kicker">The app</p>
+      <h2 id="walk-title" class="v-display">Collecting courses, made simple.</h2>
+      <p class="v-lead">Free on iPhone. No scorecards to fill in, no swing to fix. Just the places you’ve played.</p>
     </div>
 
-    <ol class="steps">
-      {
-        steps.map((step, i) => (
-          <li data-step={i}>
-            <div class="inline-phone">
-              <PhoneFrame screen={step.screen} maxWidth={240} />
-            </div>
+    <div class="body">
+      <div class="stage" aria-hidden="true">
+        <div class="stack">
+          {
+            steps.map((step, i) => (
+              <div class="slide" data-slide={i} data-on={i === 0 ? "" : undefined}>
+                <PhoneFrame screen={step.screen} maxWidth={320} />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <ol class="steps">
+        {
+          steps.map((step, i) => (
+            <li data-step={i}>
+              <span class="num v-tabular">{i + 1}</span>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+
+  <ol class="swipe" aria-label="The app, step by step">
+    {
+      steps.map((step, i) => (
+        <li class="card">
+          <PhoneFrame screen={step.screen} maxWidth={260} />
+          <div class="card-copy">
             <span class="num v-tabular">{i + 1}</span>
             <h3>{step.title}</h3>
             <p>{step.body}</p>
-          </li>
-        ))
-      }
-    </ol>
-  </div>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  <p class="swipe-hint v-meta" aria-hidden="true">Swipe for more</p>
 </section>
 
 <script>
@@ -90,13 +104,10 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
 </script>
 
 <style>
-  .walk {
-    padding-block: var(--section-gap) 0;
-  }
   .head {
     display: grid;
     gap: var(--s4);
-    max-width: 40rem;
+    max-width: 44rem;
     margin-bottom: var(--s12);
   }
   .body {
@@ -118,21 +129,14 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
   .slide {
     grid-area: 1 / 1;
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    transform: translateY(16px) scale(0.97);
     transition:
       opacity var(--dur-base) var(--ease-spring),
-      transform 420ms var(--ease-spring);
+      transform 480ms var(--ease-spring);
   }
   .slide[data-on] {
     opacity: 1;
     transform: none;
-  }
-  .stage :global(.sketch) {
-    position: absolute;
-    left: -24px;
-    bottom: 8%;
-    width: 90px;
-    opacity: 0.8;
   }
   .steps {
     list-style: none;
@@ -158,41 +162,92 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
     font-weight: 600;
     font-size: 18px;
   }
-  .steps h3 {
-    font-size: var(--t-h2);
+  h3 {
+    font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
   }
-  .steps p {
+  .steps p,
+  .card-copy p {
     color: var(--v-text-secondary);
     font-size: var(--t-ui-large);
   }
-  .inline-phone {
+
+  /* Phones: a swipeable row of screens instead of a long list. */
+  .swipe,
+  .swipe-hint {
     display: none;
   }
-
   @media (max-width: 860px) {
     .head {
       margin-bottom: var(--s7);
     }
     .body {
-      grid-template-columns: minmax(0, 1fr);
-    }
-    .stage {
       display: none;
     }
-    .steps {
+    .swipe {
+      display: flex;
+      gap: var(--s4);
+      list-style: none;
+      margin: 0;
+      padding: var(--s5) var(--page-gutter) var(--s4);
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scroll-padding-inline: var(--page-gutter);
+      scrollbar-width: none;
+    }
+    .swipe::-webkit-scrollbar {
+      display: none;
+    }
+    .card {
+      flex: 0 0 min(80vw, 320px);
+      scroll-snap-align: start;
       display: grid;
-      gap: var(--s16);
+      gap: var(--s5);
+      align-content: start;
     }
-    .steps li {
-      min-height: 0;
+    .card :global(.device) {
+      width: 72%;
+      justify-self: center;
     }
-    .inline-phone {
+    .card-copy {
+      display: grid;
+      gap: var(--s2);
+    }
+    h3 {
+      font-size: 1.625rem;
+    }
+    .swipe-hint {
       display: block;
-      width: min(68%, 240px);
-      margin: 0 auto var(--s5);
+      text-align: center;
+      margin-top: var(--s2);
     }
-    .steps h3 {
-      font-size: var(--t-h3);
+  }
+  /* The card in the middle of the row comes forward. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) and (max-width: 860px) {
+      .card {
+        animation-name: card-focus;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
+        animation-timeline: view(inline);
+      }
+    }
+  }
+  @keyframes card-focus {
+    0% {
+      opacity: 0.45;
+      transform: scale(0.9);
+    }
+    35%,
+    65% {
+      opacity: 1;
+      transform: none;
+    }
+    100% {
+      opacity: 0.45;
+      transform: scale(0.9);
     }
   }
 </style>
