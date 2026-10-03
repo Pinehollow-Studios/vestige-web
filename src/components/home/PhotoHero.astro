@@ -60,6 +60,9 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
   </div>
   <p class="credit">{caption(photo)}</p>
 </section>
+<div class="mobile-phone">
+  <PhoneFrame screen={screens.courseHankley} maxWidth={240} loading="eager" />
+</div>
 
 <style>
   /* The text sits up in the sky so the photo's subject - the two
@@ -117,18 +120,33 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
   .content :global(.hero-phone) {
     width: 280px;
     align-self: end;
-    transform: rotate(2.5deg);
+  }
+  /* Phones and tablets: the app rises out of the bottom of the photo,
+     overlapping into the page, so the hero carries the product too. */
+  .mobile-phone {
+    display: none;
   }
   @media (max-width: 1023px) {
     .content {
       grid-template-columns: minmax(0, 1fr);
+      padding-bottom: 200px;
     }
     .content :global(.hero-phone) {
       display: none;
     }
+    .mobile-phone {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: center;
+      margin-top: -160px;
+    }
+    .mobile-phone :global(.device) {
+      width: min(58vw, 250px);
+    }
   }
   h1 {
-    font-size: clamp(2.75rem, 1.6rem + 5.4vw, 5.5rem);
+    font-size: clamp(3.1rem, 1.7rem + 5.8vw, 6rem);
     font-weight: 600;
     line-height: 0.98;
     letter-spacing: -0.03em;
@@ -198,8 +216,12 @@ const courses = progressConfig.coursesMapped.toLocaleString("en-GB");
     .search button {
       padding: 0 var(--s4);
     }
+  }
+  /* On phones the caption moves to the top: the app covers the bottom. */
+  @media (max-width: 1023px) {
     .credit {
-      display: none;
+      top: var(--s4);
+      bottom: auto;
     }
   }
 </style>

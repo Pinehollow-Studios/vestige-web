@@ -8,11 +8,12 @@
  */
 ---
 
-<section class="v-container signup v-reveal" id="notify" aria-labelledby="signup-title">
-  <div class="v-card panel">
+<section class="v-band signup" id="notify" aria-labelledby="signup-title">
+  <div class="v-container">
+  <div class="v-card panel v-reveal">
     <div class="copy">
       <p class="v-label">Coming in January</p>
-      <h2 id="signup-title">Version 1.0 is nearly here.</h2>
+      <h2 id="signup-title" class="v-display">Version 1.0 is nearly here.</h2>
       <p class="v-lead">
         Leave your email and we’ll tell you the day it’s on the App Store. Free, iPhone only, and
         we won’t fill your inbox. The odd postcard from the map at most.
@@ -38,6 +39,7 @@
         iPhone, iOS 26 or later. We’ll only email you about Vestige. <a href="/privacy">Privacy</a>
       </p>
     </form>
+  </div>
   </div>
 </section>
 
@@ -95,11 +97,11 @@
     color: var(--v-accent-ink);
   }
   .signup {
-    padding-block: var(--section-gap) 0;
+    margin-top: var(--section-gap);
   }
   .panel {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
     gap: var(--s12);
     align-items: center;
     padding: clamp(var(--s7), 5vw, var(--s16));

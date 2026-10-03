@@ -1,0 +1,87 @@
+---
+/**
+ * A pause between sections: one tall, full-bleed photograph and one line.
+ * The name's own idea - a vestige is the trace something leaves behind.
+ */
+import { Picture } from "astro:assets";
+import { caption, photos } from "../../data/photos";
+
+const photo = photos.pinesSunset;
+---
+
+<section class="break" aria-label="Every round leaves a trace">
+  <Picture
+    src={photo.src}
+    alt={photo.alt}
+    formats={["avif", "webp"]}
+    widths={[640, 1280, 1920, 2560]}
+    sizes="100vw"
+    loading="lazy"
+    class="bg"
+  />
+  <div class="scrim" aria-hidden="true"></div>
+  <div class="v-container content v-reveal">
+    <p class="line">Every round leaves a trace.</p>
+    <p class="sub">A vestige is the mark something leaves behind. Vestige keeps yours.</p>
+  </div>
+  <p class="credit">{caption(photo)}</p>
+</section>
+
+<style>
+  .break {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    align-items: center;
+    min-height: min(92svh, 900px);
+    overflow: hidden;
+    color: var(--v-on-photo);
+  }
+  .break :global(.bg),
+  .break :global(.bg img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 45%;
+    z-index: -2;
+  }
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(
+      ellipse 80% 60% at 50% 50%,
+      color-mix(in srgb, var(--v-on-photo-scrim) 34%, transparent),
+      transparent 75%
+    );
+  }
+  .content {
+    display: grid;
+    gap: var(--s4);
+    justify-items: center;
+    text-align: center;
+  }
+  .line {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(2.75rem, 1.4rem + 6vw, 6rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    max-width: 12ch;
+    text-wrap: balance;
+  }
+  .sub {
+    max-width: 30rem;
+    font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.25rem);
+    color: color-mix(in srgb, var(--v-on-photo) 90%, transparent);
+  }
+  .credit {
+    position: absolute;
+    left: var(--page-gutter);
+    bottom: var(--s5);
+    font-size: var(--t-ui-meta);
+    color: color-mix(in srgb, var(--v-on-photo) 80%, transparent);
+  }
+</style>

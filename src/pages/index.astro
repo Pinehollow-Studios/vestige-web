@@ -12,14 +12,16 @@ import HowItWorks from "../components/home/HowItWorks.astro";
 import Collections from "../components/home/Collections.astro";
 import Friends from "../components/home/Friends.astro";
 import Signup from "../components/home/Signup.astro";
+import PhotoBreak from "../components/home/PhotoBreak.astro";
 import { photos } from "../data/photos";
 ---
 
 <Base>
   <PhotoHero photo={photos.fairwayShadows} />
   <MapScene />
-  <PhotoMosaic />
   <HowItWorks />
+  <PhotoBreak />
+  <PhotoMosaic />
   <Collections />
   <Friends />
   <Signup />

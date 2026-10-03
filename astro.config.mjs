@@ -28,6 +28,15 @@ export default defineConfig({
     // Images are optimised at build time; nothing is resized at request time.
     imageService: "compile",
   }),
+  vite: {
+    build: {
+      // Vite's default CSS minifier (Lightning CSS) folds animation-timeline
+      // into the animation shorthand ("animation: linear both fill --map"),
+      // which browsers reject outright, so every scroll-driven animation died
+      // in production (3 Oct 2026). esbuild leaves the longhand alone.
+      cssMinify: "esbuild",
+    },
+  },
   // No logins on this site, so no sessions (and no KV store for them).
   session: false,
   // Astro's blanket same-origin check on POSTs would block RFC 8058

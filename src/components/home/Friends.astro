@@ -24,7 +24,7 @@ const photo = photos.arthursSeat;
   <div class="scrim" aria-hidden="true"></div>
   <div class="v-container content">
     <div class="text">
-      <h2 id="friends-title">A polite competition.</h2>
+      <h2 id="friends-title" class="v-display">A polite competition.</h2>
       <p>
         Add your friends and see whose collection runs deepest. Who’s finished Surrey, who’s
         never been north of Watford, who keeps claiming they’ve played St Andrews.
@@ -41,7 +41,7 @@ const photo = photos.arthursSeat;
     isolation: isolate;
     display: grid;
     align-items: end;
-    min-height: min(80svh, 720px);
+    min-height: min(88svh, 820px);
     margin-top: var(--section-gap);
     overflow: hidden;
     color: var(--v-on-photo);
@@ -80,7 +80,6 @@ const photo = photos.arthursSeat;
   }
   .content :global(.friends-phone) {
     width: 240px;
-    transform: rotate(-2.5deg) translateY(var(--s7));
   }
   @media (max-width: 860px) {
     .content {
@@ -91,8 +90,6 @@ const photo = photos.arthursSeat;
     }
   }
   h2 {
-    font-size: clamp(2.25rem, 1.5rem + 3.4vw, 4rem);
-    letter-spacing: -0.025em;
     color: var(--v-on-photo);
   }
   .content p {
