@@ -31,7 +31,7 @@ export function breadcrumbList(crumbs: Crumb[]): Json {
   };
 }
 
-/** A `GolfCourse`: name, url, geo, county, founded, the club's website. */
+/** A `GolfCourse`: name, url, geo, county, the club's website. */
 export function golfCourse(course: DirectoryCourse, website: string | null): Json {
   const url = absoluteUrl(`/courses/${course.slug}`);
   const node: Json = {
@@ -45,8 +45,6 @@ export function golfCourse(course: DirectoryCourse, website: string | null): Jso
       url: absoluteUrl(`/courses/county/${course.county_slug}`),
     },
   };
-  const description = course.description?.trim();
-  if (description) node.description = description;
   if (course.lat != null && course.lng != null) {
     node.geo = {
       "@type": "GeoCoordinates",
@@ -54,7 +52,6 @@ export function golfCourse(course: DirectoryCourse, website: string | null): Jso
       longitude: Number(course.lng),
     };
   }
-  if (course.established != null) node.foundingDate = String(course.established);
   if (website) node.sameAs = website;
   return node;
 }

@@ -1,0 +1,135 @@
+---
+/**
+ * /clubs/claim/review?t=<token> - Tom or Jack, from the link in hello@.
+ *
+ * Approve hands the page to this claimant (taking it from any earlier one)
+ * and emails them their private link; decline tells them kindly. Opening the
+ * link changes nothing: only the buttons do.
+ */
+import ClubShell from "../../../components/clubs/ClubShell.astro";
+import { claimRpc, cleanToken, newToken, sha256, type ClaimReply } from "../../../lib/server/claims";
+import { afterVerified, sameOrigin } from "../../../lib/server/claim-actions";
+import { declinedEmail } from "../../../lib/server/claim-emails";
+import { sendEmail } from "../../../lib/server/resend";
+
+export const prerender = false;
+
+let token = cleanToken(Astro.url.searchParams.get("t"));
+let done: ClaimReply | null = null;
+
+if (Astro.request.method === "POST") {
+  if (!sameOrigin(Astro.request, Astro.url)) return new Response("Forbidden.", { status: 403 });
+  const form = await Astro.request.formData().catch(() => null);
+  token = cleanToken(form?.get("t"));
+  const approve = form?.get("decision") === "approve";
+  if (token) {
+    const manageToken = newToken();
+    done = await claimRpc("web_claim_review", {
+      p_review_sha256: await sha256(token),
+      p_approve: approve,
+      p_manage_sha256: await sha256(manageToken),
+    });
+    if (done.ok && done.approved) {
+      await afterVerified({
+        origin: Astro.url.origin,
+        email: done.email!,
+        name: done.claimant_name!,
+        course: done.course_name!,
+        slug: done.course_slug!,
+        manageToken,
+      });
+    } else if (done.ok) {
+      await sendEmail(declinedEmail({ to: done.email!, name: done.claimant_name!, course: done.course_name! }));
+    }
+  }
+}
+
+const peek = token ? await claimRpc("web_claim_peek", { p_kind: "review", p_sha256: await sha256(token) }) : null;
+const open = peek?.ok && ["awaiting_email", "awaiting_review"].includes(peek.status ?? "");
+---
+
+<ClubShell title="Review a claim" kicker="Club claims" heading={peek?.ok ? peek.course_name! : "Review a claim"}>
+  {
+    done && (
+      <p class:list={["panel", "v-card", "result", { bad: !done.ok }]} role="status">
+        {done.ok
+          ? done.approved
+            ? `Approved. ${done.claimant_name} has their private link and badge.`
+            : `Declined. ${done.claimant_name} has been told.`
+          : `That didn’t go through (${done.reason ?? "error"}${done.status ? `: already ${done.status}` : ""}).`}
+      </p>
+    )
+  }
+  {
+    !peek?.ok ? (
+      <p class="panel v-card v-alert" role="alert">This review link doesn’t match a claim.</p>
+    ) : (
+      <div class="panel v-card step">
+        <dl>
+          <div><dt>Claimant</dt><dd>{peek.claimant_name}, {peek.claimant_role}</dd></div>
+          <div><dt>Email</dt><dd>{peek.email}</dd></div>
+          <div><dt>Matches the club website</dt><dd>{peek.domain_match ? "Yes" : "No"}</dd></div>
+          <div><dt>Page already claimed</dt><dd>{peek.already_claimed ? "Yes: approving hands it over" : "No"}</dd></div>
+          <div><dt>Status</dt><dd>{peek.status?.replace("_", " ")}</dd></div>
+        </dl>
+        <a href={`/courses/${peek.course_slug}`}>See the page</a>
+        {open ? (
+          <form method="post" class="buttons">
+            <input type="hidden" name="t" value={token} />
+            <button class="v-button v-button--primary" type="submit" name="decision" value="approve">Approve</button>
+            <button class="v-button v-button--secondary" type="submit" name="decision" value="decline">Decline</button>
+          </form>
+        ) : (
+          <p class="v-meta">This claim is closed; nothing left to do.</p>
+        )}
+      </div>
+    )
+  }
+</ClubShell>
+
+<style>
+  .result {
+    margin-bottom: 0;
+    font-weight: 600;
+    color: var(--v-accent-ink);
+  }
+  .result.bad {
+    color: var(--v-alert);
+  }
+  .step {
+    display: grid;
+    justify-items: start;
+    gap: var(--s5);
+  }
+  dl {
+    display: grid;
+    gap: var(--s3);
+    margin: 0;
+    width: 100%;
+  }
+  dl div {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: var(--s4);
+  }
+  dt {
+    color: var(--v-text-secondary);
+  }
+  dd {
+    margin: 0;
+    font-weight: 600;
+  }
+  .step > a {
+    color: var(--v-accent-ink);
+  }
+  .buttons {
+    display: flex;
+    gap: var(--s3);
+  }
+  @media (max-width: 640px) {
+    dl div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+  }
+</style>

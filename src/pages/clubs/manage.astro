@@ -1,0 +1,182 @@
+---
+/**
+ * /clubs/manage?t=<token> - a verified club's private page: suggest changes
+ * to its course page (web_claim_suggest; Jack applies them by hand) and fetch
+ * its badge. The token came in the "claimed" email and is never shown in a
+ * public place.
+ */
+import ClubShell from "../../components/clubs/ClubShell.astro";
+import { claimRpc, cleanToken, sha256, type ClaimReply } from "../../lib/server/claims";
+import { sameOrigin } from "../../lib/server/claim-actions";
+import { badgeSnippet, teamSuggestionEmail } from "../../lib/server/claim-emails";
+import { sendEmail } from "../../lib/server/resend";
+import { clientIp, withinLimit, workerEnv } from "../../lib/server/worker-env";
+
+export const prerender = false;
+
+let token = cleanToken(Astro.url.searchParams.get("t"));
+let sent: ClaimReply | null = null;
+let problem: string | null = null;
+
+if (Astro.request.method === "POST") {
+  if (!sameOrigin(Astro.request, Astro.url)) return new Response("Forbidden.", { status: 403 });
+  const form = await Astro.request.formData().catch(() => null);
+  token = cleanToken(form?.get("t"));
+  const text = (k: string, max: number) => String(form?.get(k) ?? "").trim().slice(0, max) || null;
+  const description = text("description", 2000);
+  const website = text("site", 300);
+  const yearRaw = text("established", 4);
+  const year = yearRaw && /^\d{4}$/.test(yearRaw) ? Number(yearRaw) : null;
+  const notes = text("notes", 2000);
+  if (!(await withinLimit(workerEnv.CLAIM_LIMITER, clientIp(Astro.request)))) {
+    problem = "busy";
+  } else if (website && !/^https?:\/\/[^\s]+\.[^\s]+$/i.test(website)) {
+    problem = "website";
+  } else if (yearRaw && (year == null || year < 1700 || year > 2100)) {
+    problem = "year";
+  } else if (token) {
+    sent = await claimRpc("web_claim_suggest", {
+      p_manage_sha256: await sha256(token),
+      p_description: description,
+      p_website: website,
+      p_established: year,
+      p_notes: notes,
+    });
+    if (sent.ok) {
+      await sendEmail(
+        teamSuggestionEmail({
+          course: sent.course_name!,
+          slug: sent.course_slug!,
+          name: sent.claimant_name!,
+          email: sent.email!,
+          description,
+          website,
+          established: year,
+          notes,
+        })
+      );
+    } else {
+      problem = sent.reason ?? "error";
+    }
+  }
+}
+
+const peek = token ? await claimRpc("web_claim_peek", { p_kind: "manage", p_sha256: await sha256(token) }) : null;
+const valid = peek?.ok && peek.status === "verified";
+
+const PROBLEMS: Record<string, string> = {
+  empty: "Nothing to send yet: fill in at least one box.",
+  too_many: "You have ten suggestions waiting already. Jack will get to them soon.",
+  website: "The website should be a full address, starting https://",
+  year: "The founded year should be four digits, like 1897.",
+  busy: "Too many tries in a minute. Give it a moment and send it again.",
+  unknown: "This link no longer works for this page.",
+  error: "Something went wrong on our side. Try again in a minute.",
+};
+---
+
+<ClubShell title="Your course page" kicker="Your page on Vestige" heading={valid ? peek!.course_name! : "Your course page"}>
+  {
+    !valid ? (
+      <div class="panel v-card step">
+        <p class="v-alert" role="alert">
+          This link doesn’t open a claimed page. It may belong to an older claim. Reply to any of our emails and we’ll
+          send a new one.
+        </p>
+      </div>
+    ) : (
+      <>
+        <p class="intro">
+          Suggest a change and Jack, our editor, will read it and update the page. Nothing changes until he has.
+          <a href={`/courses/${peek!.course_slug}`}>See your page</a>.
+        </p>
+        {sent?.ok && (
+          <p class="panel v-card thanks" role="status">
+            Thanks. Your suggestion is with Jack. We’ll email if we have a question.
+          </p>
+        )}
+        <form class="panel v-card v-form" method="post">
+          {problem && (
+            <p class="v-alert" role="alert">
+              {PROBLEMS[problem] ?? PROBLEMS.error}
+            </p>
+          )}
+          <input type="hidden" name="t" value={token} />
+          <div class="v-field">
+            <label for="m-description">Description</label>
+            <textarea class="v-textarea" id="m-description" name="description" maxlength="2000"></textarea>
+            <p class="v-hint">How you’d describe the course to a golfer who has never played it. A few sentences is plenty.</p>
+          </div>
+          <div class="v-field">
+            <label for="m-site">Website</label>
+            <input class="v-input" id="m-site" name="site" type="url" inputmode="url" placeholder="https://" maxlength="300" />
+          </div>
+          <div class="v-field">
+            <label for="m-year">Year founded</label>
+            <input class="v-input year" id="m-year" name="established" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" />
+          </div>
+          <div class="v-field">
+            <label for="m-notes">Anything else</label>
+            <textarea class="v-textarea" id="m-notes" name="notes" maxlength="2000"></textarea>
+            <p class="v-hint">Something wrong on the page, a photo you’d like us to use, a correction to the facts.</p>
+          </div>
+          <button class="v-button v-button--primary" type="submit">Send to Jack</button>
+        </form>
+        <div class="panel v-card step">
+          <h2>Your badge</h2>
+          <p>For your website: it takes golfers straight to your page.</p>
+          <div class="badges">
+            <img src="/badges/collect-us-on-vestige.png" width="192" height="68" alt="Collect us on Vestige" />
+            <img src="/badges/collect-us-on-vestige-dark.png" width="192" height="68" alt="Collect us on Vestige, for dark backgrounds" />
+          </div>
+          <pre class="snippet">{badgeSnippet(peek!.course_slug!, peek!.course_name!)}</pre>
+          <p class="v-meta">On a dark website, swap the file for collect-us-on-vestige-dark.png.</p>
+        </div>
+      </>
+    )
+  }
+</ClubShell>
+
+<style>
+  .intro a {
+    color: var(--v-accent-ink);
+  }
+  .thanks {
+    margin-bottom: 0;
+    font-weight: 600;
+    color: var(--v-accent-ink);
+  }
+  .v-form .v-button {
+    justify-self: start;
+  }
+  .year {
+    max-width: 10rem;
+  }
+  .step {
+    display: grid;
+    justify-items: start;
+    gap: var(--s4);
+  }
+  .step p {
+    margin: 0;
+    color: var(--v-text-secondary);
+  }
+  .step .v-alert {
+    color: var(--v-alert);
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s3);
+  }
+  .snippet {
+    margin: 0;
+    width: 100%;
+    padding: var(--s4);
+    border-radius: var(--r-md);
+    background: var(--v-surface);
+    font-size: 0.8125rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+</style>

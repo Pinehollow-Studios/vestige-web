@@ -1,0 +1,219 @@
+---
+/**
+ * Where a course sits, drawn on our own county map: the county lit in mint,
+ * its neighbours around it, the course as a pin and the nearest courses as
+ * dots, with a small Britain inset for bearings. Built at build time from
+ * src/data/counties.ts (ONS and OS boundaries, OGL), so nothing loads from a
+ * map provider and nothing needs a licence beyond the attribution below.
+ *
+ * Points only. A course's outline is never drawn: it could be lifted straight
+ * out of the page (Tom, 2026-10-03).
+ */
+import { COUNTY_SHAPES, COUNTY_VIEW } from "../../data/counties";
+import { COUNTRY_SHAPES } from "../../data/countries";
+import { countyShape, frame, project, shapeBox } from "../../lib/directory/geo";
+
+interface Props {
+  name: string;
+  county: string;
+  lat: number;
+  lng: number;
+  nearby?: ReadonlyArray<{ name: string; lat: number; lng: number }>;
+}
+const { name, county, lat, lng, nearby = [] } = Astro.props;
+
+const ASPECT = 4 / 3.4;
+const shape = countyShape(county);
+const pin = project(lat, lng);
+const box = shape ? shapeBox(shape) : { x: pin.x - 20, y: pin.y - 20, w: 40, h: 40 };
+// The view holds the county and the course (a course near a border can sit just outside).
+const reach = {
+  x: Math.min(box.x, pin.x),
+  y: Math.min(box.y, pin.y),
+  w: Math.max(box.x + box.w, pin.x) - Math.min(box.x, pin.x),
+  h: Math.max(box.y + box.h, pin.y) - Math.min(box.y, pin.y),
+};
+const view = frame(reach, ASPECT);
+const u = view.w / 100; // one hundredth of the view, for sizes that read the same at any zoom
+const dots = nearby.map((n) => ({ ...project(n.lat, n.lng), name: n.name }));
+const viewBox = `${view.x.toFixed(1)} ${view.y.toFixed(1)} ${view.w.toFixed(1)} ${view.h.toFixed(1)}`;
+---
+
+<figure class="county-map">
+  <svg class="main" viewBox={viewBox} role="img" aria-label={`Map of ${county} with ${name} marked, and the nearest courses around it.`}>
+    <g class="land" aria-hidden="true">
+      {COUNTRY_SHAPES.map((c) => <path d={c.d} fill-rule="evenodd" vector-effect="non-scaling-stroke" />)}
+      {
+        COUNTY_SHAPES.filter((s) => s !== shape).map((s) => (
+          <path d={s.d} fill-rule="evenodd" vector-effect="non-scaling-stroke" />
+        ))
+      }
+    </g>
+    {shape && <path class="this" d={shape.d} fill-rule="evenodd" vector-effect="non-scaling-stroke" aria-hidden="true" />}
+    <g class="near" aria-hidden="true">
+      {
+        dots.map((d) => (
+          <circle cx={d.x.toFixed(2)} cy={d.y.toFixed(2)} r={(u * 1.25).toFixed(2)}>
+            <title>{d.name}</title>
+          </circle>
+        ))
+      }
+    </g>
+    <g class="pin" aria-hidden="true">
+      <circle class="pulse" cx={pin.x.toFixed(2)} cy={pin.y.toFixed(2)} r={(u * 2.4).toFixed(2)} />
+      <circle class="ring" cx={pin.x.toFixed(2)} cy={pin.y.toFixed(2)} r={(u * 2.4).toFixed(2)} />
+      <circle class="dot" cx={pin.x.toFixed(2)} cy={pin.y.toFixed(2)} r={(u * 1.5).toFixed(2)} />
+    </g>
+  </svg>
+
+  <svg class="inset" viewBox={`0 0 ${COUNTY_VIEW.w} ${COUNTY_VIEW.h}`} aria-hidden="true">
+    {COUNTRY_SHAPES.map((c) => <path class="gb" d={c.d} fill-rule="evenodd" />)}
+    {COUNTY_SHAPES.map((s) => <path class:list={["gb", { lit: s === shape }]} d={s.d} fill-rule="evenodd" />)}
+    <rect class="window" x={view.x} y={view.y} width={view.w} height={view.h} rx="4" vector-effect="non-scaling-stroke" />
+  </svg>
+
+  <figcaption>
+    <span class="label">
+      <span class="item"><span class="key key--pin" aria-hidden="true"></span>{name}</span>
+      {dots.length > 0 && <span class="item"><span class="key key--near" aria-hidden="true"></span>Nearest courses</span>}
+    </span>
+    <span class="credit">Boundaries: ONS and OS, © Crown copyright and database right 2026 (OGL)</span>
+  </figcaption>
+</figure>
+
+<style>
+  .county-map {
+    position: relative;
+    margin: 0;
+    border-radius: var(--r-xxl);
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 90% 70% at 50% 0%, color-mix(in srgb, var(--v-atmosphere-glow) 70%, transparent), transparent 70%),
+      color-mix(in srgb, var(--v-atmosphere-wash) 45%, var(--v-surface));
+    box-shadow: var(--card-edge);
+  }
+  .main {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3.4;
+  }
+  .land path {
+    fill: var(--v-surface-raised);
+    stroke: var(--v-map-county-line);
+    stroke-width: 1;
+    stroke-linejoin: round;
+  }
+  .this {
+    fill: color-mix(in srgb, var(--v-accent) 16%, var(--v-surface-raised));
+    stroke: var(--v-accent-ink);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+  .near circle {
+    fill: var(--v-map-course-unplayed);
+    stroke: var(--v-surface-raised);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .pin .dot {
+    fill: var(--v-accent);
+    stroke: var(--v-surface-raised);
+    stroke-width: 2.5;
+    vector-effect: non-scaling-stroke;
+  }
+  .pin .ring {
+    fill: color-mix(in srgb, var(--v-accent) 22%, transparent);
+  }
+  .pin .pulse {
+    fill: none;
+    stroke: var(--v-accent);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .pin .pulse {
+      animation: pin-pulse 2.6s var(--ease-out, ease-out) infinite;
+    }
+  }
+  @keyframes pin-pulse {
+    0% {
+      transform: scale(0.6);
+      opacity: 0.9;
+    }
+    80%,
+    100% {
+      transform: scale(2.4);
+      opacity: 0;
+    }
+  }
+
+  .inset {
+    position: absolute;
+    top: var(--s4);
+    right: var(--s4);
+    width: clamp(52px, 13%, 76px);
+    height: auto;
+    padding: 6px;
+    background: color-mix(in srgb, var(--v-surface-raised) 88%, transparent);
+    border-radius: var(--r-md);
+    box-shadow: var(--card-edge);
+  }
+  .inset .gb {
+    fill: var(--v-fill-soft);
+  }
+  .inset .lit {
+    fill: var(--v-accent);
+  }
+  .inset .window {
+    fill: none;
+    stroke: var(--v-text-primary);
+    stroke-width: 1.25;
+  }
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--s2) var(--s4);
+    padding: var(--s3) var(--s5) var(--s4);
+    font-size: var(--t-ui-meta);
+    color: var(--v-text-secondary);
+  }
+  .label {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--s2);
+  }
+  .label {
+    column-gap: var(--s4);
+  }
+  .item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s2);
+  }
+  .key {
+    display: inline-block;
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .key--pin {
+    background: var(--v-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--v-accent) 22%, transparent);
+  }
+  .key--near {
+    background: var(--v-map-course-unplayed);
+  }
+  .credit {
+    font-size: 0.6875rem;
+    color: var(--v-text-tertiary);
+  }
+</style>

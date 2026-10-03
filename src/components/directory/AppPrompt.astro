@@ -16,7 +16,7 @@ const { heading = "Played it? Put it on your map." } = Astro.props;
   <div class="copy">
     <h2>{heading}</h2>
     <p>Vestige keeps every course you’ve played on one map, county by county. Free on iPhone, with version 1.0 in January.</p>
-    <a class="v-button v-button--primary" href="/#notify">Tell me when it’s out</a>
+    <a class="v-button v-button--primary" href="/?from=directory#notify">Tell me when it’s out</a>
   </div>
   <PhoneFrame screen={screens.homeMap} maxWidth={180} class="prompt-phone" />
 </aside>

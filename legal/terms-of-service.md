@@ -4,7 +4,7 @@
 > (https://vestige.golf/terms) — the two must be kept in step. As with the
 > other documents in this folder, a UK solicitor's review is recommended.
 
-**Last updated:** 8 September 2026
+**Last updated:** 3 October 2026
 
 These Terms of Service ("Terms") are a legal agreement between you and
 **Pinehollow Studios Limited**, a company registered in England and Wales
@@ -157,6 +157,16 @@ grant you a limited, personal, non-transferable, revocable licence to use
 the Service for its intended purpose. You may not copy, modify, distribute,
 or create derivative works from the Service except as the law expressly
 permits.
+
+The course directory on vestige.golf (the course pages, their facts and
+descriptions, the curated lists and the Vestige Index) is a database in
+which we own database right and copyright. You are welcome to read it, link
+to it and quote from it in the ordinary way. You may not extract or re-use
+all or a substantial part of it, or extract or re-use insubstantial parts
+repeatedly and systematically, including by scraping, crawling or other
+automated means, or use it to train or improve machine-learning or AI
+systems, without our written permission. Our robots.txt file and the
+content signals the site publishes form part of these Terms.
 
 ## 11. Third-party services
 

@@ -128,3 +128,46 @@ export async function sendWelcomeEmail(email: string): Promise<void> {
     console.error("[welcome:exception]", err);
   }
 }
+
+export type Email = {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  replyTo?: string;
+};
+
+/**
+ * Send one transactional email (club claims and the like). Returns false on
+ * any failure, logged; never throws. Without a key (local dev) it logs the
+ * email instead, so the flow can be followed end to end.
+ */
+export async function sendEmail(email: Email): Promise<boolean> {
+  const apiKey = getSecret("RESEND_API_KEY");
+  if (!apiKey) {
+    console.log("[email:noop]", JSON.stringify({ to: email.to, subject: email.subject }), "\n" + email.text);
+    return true;
+  }
+  try {
+    const res = await fetch(`${RESEND_API}/emails`, {
+      method: "POST",
+      headers: headers(apiKey),
+      body: JSON.stringify({
+        from: `${site.name} <hello@${site.domain}>`,
+        to: email.to,
+        reply_to: email.replyTo ?? site.email.hello,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+      }),
+    });
+    if (!res.ok) {
+      console.error("[email:error]", res.status, (await res.text()).slice(0, 300));
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[email:exception]", err);
+    return false;
+  }
+}

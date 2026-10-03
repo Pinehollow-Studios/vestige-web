@@ -3,6 +3,11 @@
  * A course directory page: the site shell, breadcrumbs, a heading and the
  * page's content, with its structured data. Every directory page carries
  * noindex until DIRECTORY_INDEXABLE is switched on (lib/directory/config).
+ *
+ * Each page also carries one hidden, nofollow link to /courses/export: a path
+ * robots.txt disallows, so search engines never fetch it and only a scraper
+ * ignoring robots.txt walks in (logged by src/pages/courses/export.ts, and
+ * blocked at Cloudflare's firewall).
  */
 import Base from "./Base.astro";
 import { DIRECTORY_INDEXABLE } from "../lib/directory/config";
@@ -13,13 +18,15 @@ interface Props {
   description: string;
   crumbs?: ReadonlyArray<{ label: string; href?: string }>;
   structured?: Record<string, unknown>;
+  /** A wider measure, for the course page's two-column top. */
+  wide?: boolean;
 }
-const { title, description, crumbs = [], structured } = Astro.props;
+const { title, description, crumbs = [], structured, wide = false } = Astro.props;
 ---
 
 <Base title={title} description={description} noindex={!DIRECTORY_INDEXABLE}>
   {structured && <script slot="head" type="application/ld+json" set:html={jsonLdString(structured)} />}
-  <article class="v-container directory">
+  <article class:list={["v-container directory", { wide }]}>
     {
       crumbs.length > 0 && (
         <nav class="crumbs" aria-label="Breadcrumb">
@@ -32,6 +39,7 @@ const { title, description, crumbs = [], structured } = Astro.props;
       )
     }
     <slot />
+    <a class="trap" href="/courses/export" rel="nofollow" tabindex="-1" aria-hidden="true">Course data export</a>
   </article>
 </Base>
 
@@ -39,6 +47,17 @@ const { title, description, crumbs = [], structured } = Astro.props;
   .directory {
     max-width: calc(880px + 2 * var(--page-gutter));
     padding-block: var(--s12) 0;
+  }
+  .directory.wide {
+    max-width: calc(1120px + 2 * var(--page-gutter));
+  }
+  .trap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .crumbs ol {
     display: flex;

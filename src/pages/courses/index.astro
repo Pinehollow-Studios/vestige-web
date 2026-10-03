@@ -1,9 +1,10 @@
 ---
 /**
  * The directory's front door: search every course by name or county, or
- * browse by style, county and list. The search filters in the page (the
- * course names arrive with it); a ?q= from the homepage search fills it in.
- * Without JavaScript the browse links still reach every course.
+ * browse by style, county and list. The search asks /api/search as you type
+ * (the page never carries the full list of courses); a ?q= from the homepage
+ * search fills it in. Without JavaScript the browse links still reach every
+ * course.
  */
 import Directory from "../../layouts/Directory.astro";
 import Section from "../../components/directory/Section.astro";
@@ -14,9 +15,6 @@ import { byName, formatNumber, plural, styleLabel, styleSlug } from "../../lib/d
 import { DIRECTORY_COVERAGE } from "../../lib/directory/config";
 
 const { courses, counties, lists } = await loadDirectory();
-const countyNames = counties.map((c) => c.name);
-const countyIndex = new Map(counties.map((c, i) => [c.slug, i]));
-const searchRows = [...courses].sort(byName).map((c) => [c.name, c.slug, countyIndex.get(c.county_slug) ?? -1]);
 
 const styles = new Map<string, { label: string; count: number }>();
 for (const c of courses) {
@@ -52,7 +50,6 @@ const listRows = [...lists].sort((a, b) => b.course_count - a.course_count || by
     </form>
     <p class="v-meta status" role="status" aria-live="polite" data-status></p>
     <ul class="results" data-results></ul>
-    <script type="application/json" data-courses set:html={JSON.stringify({ rows: searchRows, counties: countyNames })} />
   </div>
 
   <Section title="By county" note={`All ${counties.length} counties, A to Z.`}>
@@ -86,57 +83,26 @@ const listRows = [...lists].sort((a, b) => b.course_count - a.course_count || by
 </Directory>
 
 <script>
-  const MAX = 12;
-  const normalise = (s: string) =>
-    s
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .toLowerCase()
-      .replace(/&/g, " and ")
-      .replace(/['’]/g, "")
-      .replace(/[^a-z0-9]+/g, " ")
-      .trim();
-
+  type Result = { name: string; slug: string; county: string };
   for (const root of document.querySelectorAll<HTMLElement>("[data-search]")) {
-    const data = JSON.parse(root.querySelector("[data-courses]")!.textContent!) as {
-      rows: Array<[string, string, number]>;
-      counties: string[];
-    };
-    const index = data.rows.map(([name, slug, c]) => ({
-      name,
-      slug,
-      county: data.counties[c] ?? "",
-      key: normalise(name),
-      hay: `${normalise(name)} ${normalise(data.counties[c] ?? "")}`,
-    }));
     const input = root.querySelector<HTMLInputElement>("input")!;
     const form = root.querySelector<HTMLFormElement>("form")!;
     const status = root.querySelector<HTMLElement>("[data-status]")!;
     const list = root.querySelector<HTMLElement>("[data-results]")!;
     let top: string | null = null;
+    let timer = 0;
+    let latest = 0;
 
-    const render = () => {
-      const q = normalise(input.value);
+    const show = (q: string, results: Result[], total: number) => {
       list.replaceChildren();
-      top = null;
-      if (!q) {
-        status.textContent = "";
-        return;
-      }
-      const tokens = q.split(" ");
-      const found = index
-        .filter((r) => tokens.every((t) => r.hay.includes(t)))
-        .map((r) => ({ r, score: r.key.startsWith(q) ? 0 : r.key.split(" ").some((w) => w.startsWith(tokens[0])) ? 1 : 2 }))
-        .sort((a, b) => a.score - b.score || a.r.name.localeCompare(b.r.name, "en-GB"))
-        .map((x) => x.r);
+      top = results[0]?.slug ?? null;
       status.textContent =
-        found.length === 0
-          ? `No course matches “${input.value.trim()}”.`
-          : found.length > MAX
-            ? `The first ${MAX} of ${found.length.toLocaleString("en-GB")} matches.`
-            : `${found.length} ${found.length === 1 ? "match" : "matches"}.`;
-      top = found[0]?.slug ?? null;
-      for (const r of found.slice(0, MAX)) {
+        total === 0
+          ? `No course matches “${q}”.`
+          : total > results.length
+            ? `The first ${results.length} of ${total.toLocaleString("en-GB")} matches. Keep typing to narrow it down.`
+            : `${total} ${total === 1 ? "match" : "matches"}.`;
+      for (const r of results) {
         const li = document.createElement("li");
         const a = document.createElement("a");
         a.href = `/courses/${r.slug}`;
@@ -152,15 +118,43 @@ const listRows = [...lists].sort((a, b) => b.course_count - a.course_count || by
       }
     };
 
-    input.addEventListener("input", render);
-    form.addEventListener("submit", (e) => {
+    const search = async () => {
+      const q = input.value.trim();
+      const ticket = ++latest;
+      if (q.length < 2) {
+        list.replaceChildren();
+        status.textContent = q ? "Keep typing…" : "";
+        top = null;
+        return;
+      }
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { headers: { Accept: "application/json" } });
+        const body = await res.json();
+        if (ticket !== latest) return;
+        if (!res.ok) {
+          status.textContent = body.error ?? "Search isn’t working right now. Browse by county below.";
+          return;
+        }
+        show(q, body.results, body.total);
+      } catch {
+        if (ticket === latest) status.textContent = "Search isn’t working right now. Browse by county below.";
+      }
+    };
+
+    input.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(search, 160);
+    });
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      clearTimeout(timer);
+      await search();
       if (top) location.href = `/courses/${top}`;
     });
     const q = new URLSearchParams(location.search).get("q");
     if (q) {
       input.value = q.slice(0, 80);
-      render();
+      search();
     }
   }
 </script>

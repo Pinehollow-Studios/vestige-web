@@ -14,7 +14,7 @@
  * To add a source: just add it to the list below. No other setup needed.
  */
 
-export const WAITLIST_SOURCES = ["insiders", "hankley", "organic"] as const;
+export const WAITLIST_SOURCES = ["insiders", "hankley", "directory", "organic"] as const;
 export type WaitlistSource = (typeof WAITLIST_SOURCES)[number];
 
 const KNOWN = new Set<string>(WAITLIST_SOURCES);
