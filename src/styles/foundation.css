@@ -345,6 +345,29 @@ p {
   }
 }
 
+/* Gentle reveals as a section scrolls into view: CSS only, and only where
+   the browser supports scroll-driven animations and the visitor hasn't
+   asked for less motion. Content is always visible without them. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .v-reveal {
+      animation: v-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+  }
+}
+@keyframes v-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Page-to-page continuity: the browser's own view transitions, off when
    the visitor asks for less motion. */
 @media (prefers-reduced-motion: no-preference) {
