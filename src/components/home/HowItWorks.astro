@@ -1,16 +1,20 @@
 ---
 /**
- * Signature scene two: the app, for real.
+ * Signature scene two: the app, for real, as one pinned sheet (the Apple
+ * product-page pattern; Tom, 3 Oct 2026).
  *
- * Wide screens: the phone pins while four steps scroll past. The bezel stays
- * still and its screen pushes across to the step in view, the way a screen
- * changes in the app; the step being shown lights up and its number takes
- * the gradient, with dots under the phone for where you are.
+ * The scene takes one screen's worth of space and pins under the header
+ * while you scroll through it. Scrolling moves through four steps: the
+ * phone's bezel stays still and its screen pushes across to the next, the
+ * words crossfade beside it (below it on phones), and the dots show where
+ * you are (tap one to go there). Every step gets an even share of the
+ * scroll.
  *
- * Phones: a swipeable row of cards. The one in the middle comes forward and
- * the dots follow; tap a dot to jump. Both are driven by the script below
- * (IntersectionObserver), so they behave the same in every browser; without
- * script the first screen stays and every step still reads.
+ * The script below does the pinning (it adds .is-pinned, which makes the
+ * section tall and the sheet sticky) and maps scroll to step. Without
+ * JavaScript the scene is a plain section: the first screen, and every step
+ * listed beside it. With reduced motion it still pins, but changes are
+ * instant.
  */
 import { screens, type Screen } from "../../data/screens";
 import PhoneFrame from "../PhoneFrame.astro";
@@ -23,7 +27,7 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
   },
   {
     title: "Tap to mark it played",
-    body: "Every course has its own page: the facts, its outline from above, where it ranks. One tap and it’s yours. Add a score if you like; nobody’s checking your handicap.",
+    body: "Every course has its own page: the facts, its outline from above, where it ranks. One tap and it’s yours. Nobody’s checking your handicap.",
     screen: screens.courseHankleySatellite,
   },
   {
@@ -33,21 +37,47 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
   },
   {
     title: "A collection to be proud of",
-    body: "Your profile keeps the lot: courses played, counties finished, your top three. The kind of thing you’ll show people at the bar.",
+    body: "Your profile keeps the lot: courses played, counties finished, your top three. The kind of thing you show people at the bar.",
     screen: screens.profile,
   },
 ];
 ---
 
-<section class="v-band walk" aria-labelledby="walk-title" data-walk>
-  <div class="v-container">
-    <div class="head v-reveal">
-      <p class="v-kicker">The app</p>
-      <h2 id="walk-title" class="v-display">Collecting courses, made simple.</h2>
-      <p class="v-lead">Free on iPhone. No scorecards to fill in, no swing to fix. Just the places you’ve played.</p>
-    </div>
+<section class="walk" aria-labelledby="walk-title" data-walk style={`--steps: ${steps.length}`}>
+  <div class="sheet">
+    <div class="v-container grid">
+      <div class="words">
+        <div class="head">
+          <p class="v-kicker">The app</p>
+          <h2 id="walk-title" class="v-display">Collecting courses, made simple.</h2>
+        </div>
 
-    <div class="body">
+        <ol class="steps">
+          {
+            steps.map((step, i) => (
+              <li data-step={i} data-on={i === 0 ? "" : undefined}>
+                <span class="num v-tabular">{i + 1}</span>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </li>
+            ))
+          }
+        </ol>
+
+        <div class="dots" role="group" aria-label="Steps">
+          {
+            steps.map((step, i) => (
+              <button
+                type="button"
+                data-go={i}
+                data-on={i === 0 ? "" : undefined}
+                aria-label={`Step ${i + 1}: ${step.title}`}
+              />
+            ))
+          }
+        </div>
+      </div>
+
       <div class="stage" aria-hidden="true">
         <PhoneFrame
           screen={steps[0].screen}
@@ -55,274 +85,268 @@ const steps: ReadonlyArray<{ title: string; body: string; screen: Screen }> = [
           maxWidth={320}
           class="stage-phone"
         />
-        <div class="dots">
-          {steps.map((_, i) => <span data-dot={i} data-on={i === 0 ? "" : undefined} />)}
-        </div>
       </div>
-
-      <ol class="steps">
-        {
-          steps.map((step, i) => (
-            <li data-step={i} data-on={i === 0 ? "" : undefined}>
-              <span class="num v-tabular">{i + 1}</span>
-              <h3>{step.title}</h3>
-              <p>{step.body}</p>
-            </li>
-          ))
-        }
-      </ol>
     </div>
-  </div>
-
-  <ol class="swipe" aria-label="The app, step by step" data-swipe>
-    {
-      steps.map((step, i) => (
-        <li class="card" data-card={i} data-on={i === 0 ? "" : undefined}>
-          <PhoneFrame screen={step.screen} maxWidth={260} />
-          <div class="card-copy">
-            <span class="num v-tabular">{i + 1}</span>
-            <h3>{step.title}</h3>
-            <p>{step.body}</p>
-          </div>
-        </li>
-      ))
-    }
-  </ol>
-  <div class="swipe-dots" data-swipe-dots>
-    {
-      steps.map((step, i) => (
-        <button type="button" data-go={i} data-on={i === 0 ? "" : undefined} aria-label={`Step ${i + 1}: ${step.title}`} />
-      ))
-    }
   </div>
 </section>
 
 <script>
-  const mark = (els: Iterable<Element>, key: string, i: number) => {
-    for (const el of els) el.toggleAttribute("data-on", (el as HTMLElement).dataset[key] === String(i));
-  };
-
   for (const walk of document.querySelectorAll<HTMLElement>("[data-walk]")) {
-    walk.classList.add("is-live");
-    // Wide: the pinned phone follows the step in the middle of the view.
-    const layers = walk.querySelectorAll<HTMLElement>(".stage [data-layer]");
+    const sheet = walk.querySelector<HTMLElement>(".sheet")!;
+    const layers = walk.querySelectorAll<HTMLElement>("[data-layer]");
     const steps = walk.querySelectorAll<HTMLElement>("[data-step]");
-    const dots = walk.querySelectorAll<HTMLElement>("[data-dot]");
+    const dots = walk.querySelectorAll<HTMLButtonElement>("[data-go]");
+    const count = steps.length;
+    let current = -1;
+
+    walk.classList.add("is-pinned");
+
     const show = (i: number) => {
+      if (i === current) return;
+      current = i;
       layers.forEach((layer) => {
         const n = Number(layer.dataset.layer);
         layer.dataset.state = n < i ? "before" : n === i ? "on" : "after";
       });
-      mark(steps, "step", i);
-      mark(dots, "dot", i);
+      steps.forEach((step, n) => step.toggleAttribute("data-on", n === i));
+      dots.forEach((dot, n) => {
+        dot.toggleAttribute("data-on", n === i);
+        dot.setAttribute("aria-current", n === i ? "step" : "false");
+      });
     };
-    const stepWatch = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) show(Number((entry.target as HTMLElement).dataset.step));
-        }
-      },
-      { rootMargin: "-45% 0px -45% 0px" }
-    );
-    steps.forEach((step) => stepWatch.observe(step));
 
-    // Phones: the card in the middle comes forward; the dots follow and jump.
-    const row = walk.querySelector<HTMLElement>("[data-swipe]");
-    const cards = walk.querySelectorAll<HTMLElement>("[data-card]");
-    const go = walk.querySelectorAll<HTMLButtonElement>("[data-go]");
-    if (row) {
-      row.classList.add("is-live");
-      const cardWatch = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            const i = Number((entry.target as HTMLElement).dataset.card);
-            mark(cards, "card", i);
-            mark(go, "go", i);
-          }
-        },
-        { root: row, threshold: 0.6 }
-      );
-      cards.forEach((card) => cardWatch.observe(card));
-      go.forEach((button) =>
-        button.addEventListener("click", () => {
-          const card = cards[Number(button.dataset.go)];
-          row.scrollTo({ left: card.offsetLeft - row.offsetLeft - parseFloat(getComputedStyle(row).scrollPaddingLeft || "0"), behavior: "smooth" });
-        })
-      );
-    }
+    // How far through the pinned stretch we are, 0 to 1: the sheet sticks
+    // `stick` px from the top (under the header) for walk height minus
+    // sheet height of scrolling.
+    const stick = () => parseFloat(getComputedStyle(sheet).top) || 0;
+    const progress = () => {
+      const travel = walk.offsetHeight - sheet.offsetHeight;
+      const moved = stick() - walk.getBoundingClientRect().top;
+      return travel > 0 ? Math.min(1, Math.max(0, moved / travel)) : 0;
+    };
+
+    let queued = false;
+    const update = () => {
+      queued = false;
+      show(Math.min(count - 1, Math.floor(progress() * count)));
+    };
+    const request = () => {
+      if (!queued) {
+        queued = true;
+        requestAnimationFrame(update);
+      }
+    };
+    addEventListener("scroll", request, { passive: true });
+    addEventListener("resize", request);
+    update();
+
+    // A dot scrolls to the middle of its step's share of the scene.
+    dots.forEach((dot, i) =>
+      dot.addEventListener("click", () => {
+        const travel = walk.offsetHeight - sheet.offsetHeight;
+        const top = walk.getBoundingClientRect().top + scrollY - stick();
+        scrollTo({ top: top + ((i + 0.5) / count) * travel, behavior: "smooth" });
+      })
+    );
   }
 </script>
 
 <style>
-  .head {
-    display: grid;
-    gap: var(--s4);
-    max-width: 44rem;
-    margin-bottom: var(--s12);
+  /* ---- The sheet: one screen of the app's gradient --------------------- */
+  .sheet {
+    background-color: var(--v-surface);
+    background-image: var(--app-wash);
+    padding-block: var(--section-gap);
   }
-  .body {
+  .grid {
     display: grid;
-    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
     gap: var(--s12);
   }
-  .stage {
-    position: sticky;
-    top: 96px;
-    align-self: start;
+  .words {
     display: grid;
-    justify-items: center;
+    gap: var(--s7);
+    align-content: center;
+  }
+  .head {
+    display: grid;
+    gap: var(--s3);
+  }
+  .head .v-display {
+    font-size: clamp(2.25rem, 1.4rem + 3.4vw, 4rem);
+  }
+  .stage {
+    display: grid;
+    place-items: center;
   }
   .stage :global(.stage-phone) {
-    width: min(100%, 320px);
+    width: min(100%, 300px);
   }
-  .dots {
-    display: flex;
-    gap: var(--s2);
-    margin-top: var(--s7);
-  }
-  .dots span,
-  .swipe-dots button {
-    width: 8px;
-    height: 8px;
-    border-radius: var(--r-pill);
-    background: var(--v-fill-soft);
-    transition:
-      width 420ms var(--ease-spring),
-      background-color var(--dur-base) ease;
-  }
-  .dots span[data-on],
-  .swipe-dots button[data-on] {
-    width: 28px;
-    background-image: linear-gradient(135deg, var(--v-accent), var(--v-accent-lime));
-  }
+
   .steps {
-    list-style: none;
+    display: grid;
+    gap: var(--s7);
     margin: 0;
     padding: 0;
+    list-style: none;
   }
   .steps li {
     display: grid;
     gap: var(--s3);
-    align-content: center;
-    min-height: 72svh;
+    align-content: start;
     max-width: 30rem;
-    transition:
-      opacity 420ms var(--ease-spring),
-      transform 520ms var(--ease-spring);
-  }
-  /* With the script running, the step being shown lights up. */
-  .walk.is-live .steps li:not([data-on]) {
-    opacity: 0.32;
-    transform: translateX(-8px);
   }
   .num {
     display: grid;
     place-items: center;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     background: var(--v-accent-soft);
     color: var(--v-accent-ink);
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 18px;
-    transition:
-      background-color var(--dur-base) ease,
-      color var(--dur-base) ease;
+    font-size: 17px;
   }
-  [data-on] > .num,
-  .card[data-on] .num {
+  .is-pinned [data-on] > .num {
     background-image: linear-gradient(135deg, var(--v-accent), var(--v-accent-lime));
     color: var(--v-on-accent);
   }
   h3 {
-    font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+    font-size: clamp(1.6rem, 1.25rem + 1.3vw, 2.25rem);
     letter-spacing: -0.02em;
-    line-height: 1.05;
+    line-height: 1.08;
   }
-  .steps p,
-  .card-copy p {
+  .steps p {
+    margin: 0;
     color: var(--v-text-secondary);
     font-size: var(--t-ui-large);
+    line-height: 1.55;
   }
 
-  /* Phones: a swipeable row of screens instead of a long list. */
-  .swipe,
-  .swipe-dots {
+  .dots {
     display: none;
+    gap: var(--s2);
   }
+  .dots button {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--v-fill-soft);
+    cursor: pointer;
+    transition:
+      width 420ms var(--ease-spring),
+      background-color var(--dur-base) ease;
+  }
+  .dots button[data-on] {
+    width: 28px;
+    background-image: linear-gradient(135deg, var(--v-accent), var(--v-accent-lime));
+  }
+
+  /* ---- Pinned: the scene is tall, the sheet sticks ---------------------- */
+  /* The sheet fills the screen under the 64px header; each step gets 70% of
+     a screen of scroll. */
+  .walk.is-pinned {
+    height: calc(100svh - 64px + var(--steps) * 70svh);
+  }
+  .is-pinned .sheet {
+    position: sticky;
+    top: 64px;
+    height: calc(100svh - 64px);
+    display: grid;
+    align-items: center;
+    padding-block: var(--s7);
+    overflow: hidden;
+  }
+  .is-pinned .steps {
+    gap: 0;
+  }
+  .is-pinned .steps li {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(14px);
+    pointer-events: none;
+    transition:
+      opacity 360ms ease,
+      transform 520ms var(--ease-spring);
+  }
+  .is-pinned .steps li[data-on] {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+  .is-pinned .dots {
+    display: flex;
+  }
+  /* The phone sized to the screen's height, so the whole sheet always fits. */
+  .is-pinned .stage :global(.stage-phone) {
+    width: min(300px, calc((100svh - 64px - 2 * var(--s7)) * 0.44));
+  }
+
+  /* ---- Phones: stacked in the one sheet -------------------------------- */
   @media (max-width: 860px) {
-    .head {
-      margin-bottom: var(--s7);
-    }
-    .body {
-      display: none;
-    }
-    .swipe {
-      display: flex;
-      gap: var(--s4);
-      list-style: none;
-      margin: 0;
-      padding: var(--s5) var(--page-gutter) var(--s4);
-      overflow-x: auto;
-      overscroll-behavior-x: contain;
-      scroll-snap-type: x mandatory;
-      scroll-padding-inline: var(--page-gutter);
-      scrollbar-width: none;
-    }
-    .swipe::-webkit-scrollbar {
-      display: none;
-    }
-    .card {
-      flex: 0 0 min(80vw, 320px);
-      scroll-snap-align: start;
-      display: grid;
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
       gap: var(--s5);
-      align-content: start;
     }
-    .card :global(.device) {
-      width: 72%;
-      justify-self: center;
+    .words {
+      display: contents;
     }
-    .card-copy {
-      display: grid;
-      gap: var(--s2);
+    .head {
+      order: 1;
+      gap: var(--s1);
+    }
+    .head .v-display {
+      font-size: clamp(1.75rem, 1.2rem + 3vw, 2.25rem);
+    }
+    .stage {
+      order: 2;
+    }
+    .steps {
+      order: 3;
+    }
+    .dots {
+      order: 4;
+      justify-content: center;
+    }
+    .is-pinned .num {
+      display: none;
     }
     h3 {
-      font-size: 1.625rem;
+      font-size: 1.375rem;
     }
-    .swipe-dots {
-      display: flex;
-      justify-content: center;
-      gap: var(--s2);
-      margin-top: var(--s3);
+    .steps p {
+      font-size: var(--t-ui-body);
     }
-    .swipe-dots button {
-      padding: 0;
-      border: 0;
-      cursor: pointer;
+    .is-pinned .steps li {
+      gap: var(--s1);
+      text-align: center;
+      justify-items: center;
+      margin-inline: auto;
     }
-    /* With the script running, the card in the middle comes forward. */
-    .swipe.is-live .card {
-      transition:
-        transform 520ms var(--ease-spring),
-        opacity 420ms var(--ease-spring);
+    .is-pinned .sheet {
+      padding-block: var(--s5);
     }
-    .swipe.is-live .card:not([data-on]) {
-      opacity: 0.5;
-      transform: scale(0.92);
+    .is-pinned .grid {
+      align-content: center;
+      gap: var(--s4);
+    }
+    /* The phone takes what the screen has left after the title, the step's
+       words and the dots (about 330px), so the sheet always fits. */
+    .is-pinned .stage :global(.stage-phone) {
+      width: min(62vw, calc((100svh - 64px - 330px) * 0.46));
     }
   }
+
   @media (prefers-reduced-motion: reduce) {
-    .steps li,
-    .swipe.is-live .card {
+    .is-pinned .steps li,
+    .dots button {
       transition: none;
     }
-    .walk.is-live .steps li:not([data-on]) {
-      transform: none;
-    }
-    .swipe.is-live .card:not([data-on]) {
+    .is-pinned .steps li {
       transform: none;
     }
   }
